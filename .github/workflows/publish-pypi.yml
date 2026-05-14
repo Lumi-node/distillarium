@@ -1,0 +1,55 @@
+name: Publish distillarium to PyPI
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      test_only:
+        description: "Publish to TestPyPI only"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    environment: pypi  # Configure environment 'pypi' in repo settings for required reviewers
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build
+        working-directory: distillery_pkg
+        run: |
+          rm -rf dist build src/*.egg-info
+          python -m build
+
+      - name: Verify distribution
+        working-directory: distillery_pkg
+        run: twine check dist/*
+
+      - name: Publish to TestPyPI
+        if: ${{ inputs.test_only == true }}
+        working-directory: distillery_pkg
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        run: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+      - name: Publish to PyPI
+        if: ${{ inputs.test_only != true }}
+        working-directory: distillery_pkg
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*
