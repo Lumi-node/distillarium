@@ -1,6 +1,6 @@
 <!--
   This is the top-level README that will land at
-  github.com/the-distillery/distillarium/README.md
+  github.com/Lumi-node/distillarium/README.md
 
   Move it to the root of the public repo (above distillery_pkg/, site/, etc.)
   when you push.
@@ -216,7 +216,7 @@ Every Spirit ships with **honest** Tasting Notes including failure cases. We aut
 
 ```bash
 # Clone
-git clone https://github.com/the-distillery/distillarium
+git clone https://github.com/Lumi-node/distillarium
 cd distillarium
 
 # Install package editable

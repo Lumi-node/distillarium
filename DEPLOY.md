@@ -46,7 +46,7 @@ End-to-end steps to take the repo from local → public.
 ## Step 2 — Create the Cloudflare Pages project
 
 1. Cloudflare dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
-2. Authorize GitHub, pick `the-distillery/distillarium`
+2. Authorize GitHub, pick `Lumi-node/distillarium`
 3. Configure build:
    - **Build command:** `cd site && npm install && npm run build`
    - **Build output:** `site/dist`
@@ -107,7 +107,7 @@ Two options:
 
 ```bash
 cd /media/lumi-node/Storage2/research-radar
-git remote add origin git@github.com:the-distillery/distillarium.git
+git remote add origin git@github.com:Lumi-node/distillarium.git
 git push -u origin main
 ```
 

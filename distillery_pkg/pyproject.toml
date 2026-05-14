@@ -44,7 +44,7 @@ distillery = "distillarium.cli:main"
 [project.urls]
 Homepage = "https://thedistillery.run"
 Documentation = "https://thedistillery.run/docs"
-Repository = "https://github.com/the-distillery/distillarium"
+Repository = "https://github.com/Lumi-node/distillarium"
 
 [tool.setuptools.packages.find]
 where = ["src"]
