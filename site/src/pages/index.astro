@@ -1,0 +1,583 @@
+---
+import Base from "../layouts/Base.astro";
+import StillCanvas from "../components/StillCanvas.astro";
+import BottleCard from "../components/BottleCard.astro";
+import cellar from "../data/cellar.json";
+
+const featured = cellar.slice(0, 4);
+---
+<Base
+  title="The Distillery — Replace your AI pipeline. Keep the one step that matters."
+  description="Most production AI pipelines chain 6 frontier LLM calls. Only one actually needs a 1.5T model. Distill the other five into 20M-param Spirits — same outputs, 56% cheaper, 52% faster, 1 vendor instead of 6."
+>
+  <section class="hero wrap">
+    <div class="hero-left">
+      <h1 class="pixel-h">Replace your AI pipeline. Keep the <span class="accent">one step that matters.</span></h1>
+      <p class="tagline">
+        Production agent pipelines chain 6 frontier LLM calls — intent, routing, PII, classification, generation, validation. Only one of those (the generation) actually needs a 1.5T model.
+        <br/><br/>
+        <strong>Distill the other five into 20M-param Spirits</strong> that run on CPU for $0. Same outputs. <strong>−56% cost, −52% latency, 1 vendor instead of 6.</strong>
+      </p>
+      <div class="actions">
+        <a href="/why" class="btn">See the pipeline math</a>
+        <a href="/cellar" class="btn btn-secondary">Browse the Cellar</a>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="num">−56%</div><div class="label">cost per pipeline turn</div></div>
+        <div class="stat"><div class="num">−52%</div><div class="label">end-to-end latency</div></div>
+        <div class="stat"><div class="num">$0.30</div><div class="label">to distill a Spirit</div></div>
+      </div>
+    </div>
+    <div class="hero-right">
+      <StillCanvas />
+    </div>
+  </section>
+
+  <!-- =============================================== -->
+  <!-- WHY TEAMS USE IT — compound AI pitch            -->
+  <!-- =============================================== -->
+  <section class="flow wrap" id="why-teams">
+    <h2 class="pixel-h section-title">💡 Why teams use it</h2>
+    <p class="section-sub">Your agent pipeline is probably 6 frontier LLM calls. <strong>Most of them don't need to be.</strong> Distill the narrow tasks into pocket-sized Spirits and keep the frontier LLM for the one step where reasoning actually happens.</p>
+
+    <div class="compound">
+      <div class="compound-col">
+        <div class="compound-label before">Before — all frontier</div>
+        <ul class="pipeline">
+          <li><span class="step-dot bad"></span> intent classifier · $0.005 · 400ms</li>
+          <li><span class="step-dot bad"></span> PII redactor · $0.005 · 400ms</li>
+          <li><span class="step-dot bad"></span> urgency scorer · $0.005 · 400ms</li>
+          <li><span class="step-dot bad"></span> agent router · $0.005 · 400ms</li>
+          <li><span class="step-dot bad"></span> response gen · $0.020 · 1500ms</li>
+          <li><span class="step-dot bad"></span> tone validator · $0.005 · 400ms</li>
+        </ul>
+        <div class="compound-total bad">
+          <strong>$0.045</strong> · 3,500 ms · 6 vendors
+        </div>
+      </div>
+
+      <div class="compound-arrow">
+        <div class="arrow-chevrons">
+          <span>▶</span><span>▶</span><span>▶</span>
+        </div>
+        <div class="arrow-label">distill 5<br/>keep 1</div>
+      </div>
+
+      <div class="compound-col">
+        <div class="compound-label after">After — compound AI</div>
+        <ul class="pipeline">
+          <li><span class="step-dot good"></span> 🍾 intent Spirit · $0 · 30ms</li>
+          <li><span class="step-dot good"></span> 🍾 PII Spirit · $0 · 30ms</li>
+          <li><span class="step-dot good"></span> 🍾 urgency Spirit · $0 · 30ms</li>
+          <li><span class="step-dot good"></span> 🍾 router Spirit · $0 · 50ms</li>
+          <li><span class="step-dot mid"></span> Frontier LLM · $0.020 · 1500ms</li>
+          <li><span class="step-dot good"></span> 🍾 tone Spirit · $0 · 30ms</li>
+        </ul>
+        <div class="compound-total good">
+          <strong>$0.020</strong> · 1,670 ms · 1 vendor
+        </div>
+      </div>
+    </div>
+
+    <div class="compound-delta">
+      <div class="delta-stat"><div class="dn">−56%</div><div class="dl">cost / call</div></div>
+      <div class="delta-stat"><div class="dn">−52%</div><div class="dl">latency</div></div>
+      <div class="delta-stat"><div class="dn">−83%</div><div class="dl">vendor lock-in</div></div>
+      <div class="delta-stat"><div class="dn">$9M/yr</div><div class="dl">saved at 1M conv/day</div></div>
+    </div>
+
+    <p style="margin-top: 20px; text-align: center;">
+      <a href="/why" class="btn btn-ghost">See the full pipeline replacement story →</a>
+    </p>
+  </section>
+
+  <section class="flow wrap" id="flow">
+    <h2 class="pixel-h section-title">⚗ The Process</h2>
+    <p class="section-sub">A real distillation, in our language. Each step maps to something concrete in the engine.</p>
+    <div class="steps">
+      <div class="step">
+        <span class="ico">🌾</span>
+        <div class="name">The Mash</div>
+        <div class="desc">Define a task. Seed prompts the teacher riffs on to build the corpus.</div>
+        <div class="glossary">= training data</div>
+      </div>
+      <div class="step">
+        <span class="ico">📜</span>
+        <div class="name">The Recipe</div>
+        <div class="desc">Pick teacher, student arch, eval criteria. Save it. Fork it.</div>
+        <div class="glossary">= versioned config</div>
+      </div>
+      <div class="step">
+        <span class="ico">🔥</span>
+        <div class="name">The Still</div>
+        <div class="desc">Train. Live progress, loss curve, drip counter — all real.</div>
+        <div class="glossary">= the training run</div>
+      </div>
+      <div class="step">
+        <span class="ico">📝</span>
+        <div class="name">Tasting Notes</div>
+        <div class="desc">Auto eval report: strengths, weaknesses, failure cases, deltas.</div>
+        <div class="glossary">= held-out metrics</div>
+      </div>
+      <div class="step">
+        <span class="ico">🍾</span>
+        <div class="name">Bottling</div>
+        <div class="desc">Export to ONNX, GGUF, or WASM. Signed and deployable.</div>
+        <div class="glossary">= deployment artifact</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="flow wrap" id="install">
+    <h2 class="pixel-h section-title">▶ Try It</h2>
+    <p class="section-sub">Install the CLI and distill your first Spirit. About 30 minutes on a single GPU, ~$0.30 in teacher API.</p>
+<pre><span class="com"># Install</span>
+pip install distillarium[gemini]
+
+<span class="com"># Distill — uses GOOGLE_API_KEY from env</span>
+distillery distill recipes/needle.tool-calling-v1.yaml
+
+<span class="com"># Inspect your local Cellar</span>
+distillery cellar
+
+<span class="com"># Re-taste against fresh held-out data</span>
+distillery taste spirits/needle.pt --mash held_out.jsonl
+
+<span class="com"># Bottle for deployment (ONNX, GGUF, WASM)</span>
+distillery bottle spirits/needle.pt --format onnx</pre>
+  </section>
+
+  <section class="flow wrap" id="cellar">
+    <h2 class="pixel-h section-title">🍾 The Cellar</h2>
+    <p class="section-sub">Browse and fork community Spirits. Every one ships with full Tasting Notes.</p>
+    <div class="cellar">
+      {featured.map((s) => (
+        <BottleCard
+          slug={s.slug}
+          name={s.name}
+          tagline={s.tagline}
+          proof={s.proof}
+          proofMetric={s.proof_metric}
+          paramsM={s.params_m}
+          color={s.color}
+          author={s.author}
+        />
+      ))}
+    </div>
+    <p style="margin-top: 20px; text-align: center;">
+      <a href="/cellar" class="btn btn-ghost">Explore all Spirits →</a>
+    </p>
+  </section>
+
+  <!-- =============================================== -->
+  <!-- USE CASES — "What could YOU distill?"           -->
+  <!-- =============================================== -->
+  <section class="flow wrap" id="use-cases">
+    <h2 class="pixel-h section-title">🧪 What could YOU distill?</h2>
+    <p class="section-sub">A Spirit is good for any task you'd otherwise hit an API for over and over. Fork a recipe, swap the catalog, distill.</p>
+    <div class="uses">
+      <a class="use" href="/cellar/needle">
+        <span class="ico">🛠</span>
+        <div class="use-title">An agent's tool-caller</div>
+        <div class="use-desc">Replace the function-calling round-trip to a frontier model. Sub-50ms on CPU.</div>
+        <div class="use-recipe">recipe: <code>needle.tool-calling</code></div>
+      </a>
+      <a class="use" href="/cellar/pii-guard">
+        <span class="ico">🔒</span>
+        <div class="use-title">A PII redactor</div>
+        <div class="use-desc">Catch names, addresses, SSNs in prompts before they ever leave your terminal.</div>
+        <div class="use-recipe">recipe: <code>privacy.pii-guard</code></div>
+      </a>
+      <a class="use" href="/cellar/routor">
+        <span class="ico">🎯</span>
+        <div class="use-title">An intent classifier</div>
+        <div class="use-desc">Route incoming messages to the right downstream agent. 8M params, basically free.</div>
+        <div class="use-recipe">recipe: <code>routing.intent</code></div>
+      </a>
+      <a class="use" href="#install">
+        <span class="ico">📊</span>
+        <div class="use-title">A SQL query parser</div>
+        <div class="use-desc">Natural-language → structured SQL, locally, without leaking your schema.</div>
+        <div class="use-recipe">recipe: <code>data.sql-parse</code> (waitlist)</div>
+      </a>
+      <a class="use" href="#install">
+        <span class="ico">🧾</span>
+        <div class="use-title">A receipt structurer</div>
+        <div class="use-desc">Photo / OCR text → JSON line items. Edge-runnable on a phone.</div>
+        <div class="use-recipe">recipe: <code>data.receipt-ner</code> (waitlist)</div>
+      </a>
+      <a class="use" href="#install">
+        <span class="ico">🧪</span>
+        <div class="use-title">Your own idea</div>
+        <div class="use-desc">Write a recipe, point at a teacher, hit distill. Share the Spirit in the Cellar.</div>
+        <div class="use-recipe">recipe: <code>(start a new one)</code></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- =============================================== -->
+  <!-- ANATOMY OF A SPIRIT — labeled SVG               -->
+  <!-- =============================================== -->
+  <section class="flow wrap" id="anatomy">
+    <h2 class="pixel-h section-title">🍾 Anatomy of a Spirit</h2>
+    <p class="section-sub">Every bottled Spirit is a single self-contained artifact. Hover the parts to see what each one is in ML terms.</p>
+
+    <div class="anatomy-grid">
+      <div class="anatomy-art">
+        <svg viewBox="0 0 280 360" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- bottle parts (each <g> is a labeled hover target) -->
+          <g class="part" data-label="cork">
+            <rect x="110" y="20" width="60" height="44" fill="#8b4513" stroke="#000" stroke-width="2"/>
+            <rect x="110" y="20" width="60" height="8" fill="#a85f1e"/>
+          </g>
+          <g class="part" data-label="neck">
+            <rect x="116" y="64" width="48" height="32" fill="#3a5a7a" stroke="#000" stroke-width="2"/>
+            <rect x="120" y="68" width="6" height="26" fill="rgba(255,255,255,0.35)"/>
+          </g>
+          <g class="part" data-label="glass">
+            <path d="M 90 96 L 190 96 L 200 116 L 200 320 L 80 320 L 80 116 Z"
+                  fill="#3a5a7a" stroke="#000" stroke-width="2"/>
+          </g>
+          <g class="part" data-label="liquid">
+            <path d="M 84 152 L 196 152 L 196 316 L 84 316 Z" fill="#ffa432"/>
+            <rect x="84" y="152" width="112" height="3" fill="#ffd87a"/>
+          </g>
+          <g class="part" data-label="label">
+            <rect x="98" y="220" width="84" height="78" fill="#f4e4bc" stroke="#000" stroke-width="2"/>
+            <rect x="102" y="224" width="76" height="3" fill="#2a1810"/>
+            <rect x="102" y="290" width="76" height="3" fill="#2a1810"/>
+            <text x="140" y="246" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" fill="#2a1810">NEEDLE</text>
+            <text x="140" y="262" font-family="monospace" font-size="8" text-anchor="middle" fill="#2a1810">TOOL CALLING</text>
+            <text x="140" y="274" font-family="monospace" font-size="8" text-anchor="middle" fill="#2a1810">· 2026 ·</text>
+            <text x="140" y="286" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#2a1810">★ 78 PROOF ★</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="anatomy-list">
+        <div class="anatomy-row" data-target="cork">
+          <span class="aico">🟫</span>
+          <div><strong>Cork</strong> — the <code>Recipe</code>. Sealed, signed config that produced this Spirit. You can re-distill from it byte-for-byte.</div>
+        </div>
+        <div class="anatomy-row" data-target="neck">
+          <span class="aico">🧷</span>
+          <div><strong>Neck</strong> — the <code>inference shape</code>. Tokenizer, vocab size, max sequence length.</div>
+        </div>
+        <div class="anatomy-row" data-target="glass">
+          <span class="aico">🪟</span>
+          <div><strong>Glass</strong> — the <code>bottling format</code>. PyTorch, ONNX, or GGUF wrapper around the weights.</div>
+        </div>
+        <div class="anatomy-row" data-target="liquid">
+          <span class="aico">🟧</span>
+          <div><strong>Amber</strong> — the <code>trained weights</code>. The actual model parameters. Darker = higher proof.</div>
+        </div>
+        <div class="anatomy-row" data-target="label">
+          <span class="aico">📝</span>
+          <div><strong>Label</strong> — the <code>Tasting Notes</code>. Name, vintage, batch, headline proof. Auto-generated, honest.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============================================== -->
+  <!-- THE VOCABULARY — playful glossary               -->
+  <!-- =============================================== -->
+  <section class="flow wrap" id="vocabulary">
+    <h2 class="pixel-h section-title">📜 The Vocabulary</h2>
+    <p class="section-sub">Every term means something concrete. Each maps to an ML concept — and that's deliberate.</p>
+    <div class="vocab">
+      <div class="vocab-row"><span class="vico">🌾</span><span class="term">Mash</span><span class="arrow">↔</span><span class="defn">training corpus the teacher generates from</span></div>
+      <div class="vocab-row"><span class="vico">📜</span><span class="term">Recipe</span><span class="arrow">↔</span><span class="defn">YAML config — versioned, forkable, reproducible</span></div>
+      <div class="vocab-row"><span class="vico">✂</span><span class="term">Cuts</span><span class="arrow">↔</span><span class="defn">train/val/test splits</span></div>
+      <div class="vocab-row"><span class="vico">🪜</span><span class="term">Heads · Hearts · Tails</span><span class="arrow">↔</span><span class="defn">filter quality — kept / borderline / discarded</span></div>
+      <div class="vocab-row"><span class="vico">🔥</span><span class="term">The Still</span><span class="arrow">↔</span><span class="defn">the training run itself</span></div>
+      <div class="vocab-row"><span class="vico">📈</span><span class="term">Proof</span><span class="arrow">↔</span><span class="defn">held-out accuracy. higher = more concentrated</span></div>
+      <div class="vocab-row"><span class="vico">📝</span><span class="term">Tasting Notes</span><span class="arrow">↔</span><span class="defn">auto-generated eval report — strengths, weaknesses, samples</span></div>
+      <div class="vocab-row"><span class="vico">🛢</span><span class="term">Aging in Casks</span><span class="arrow">↔</span><span class="defn">continued training / RLHF / refresh</span></div>
+      <div class="vocab-row"><span class="vico">🍾</span><span class="term">Bottling</span><span class="arrow">↔</span><span class="defn">export — .pt / .onnx / .gguf / .wasm</span></div>
+      <div class="vocab-row"><span class="vico">🏛</span><span class="term">The Cellar</span><span class="arrow">↔</span><span class="defn">your (or the public) library of Spirits</span></div>
+    </div>
+  </section>
+
+  <!-- =============================================== -->
+  <!-- SUPPORT THE LAB                                 -->
+  <!-- =============================================== -->
+  <section class="flow wrap" id="support">
+    <h2 class="pixel-h section-title">🤝 Support the Lab</h2>
+    <p class="section-sub">The Distillery is open-source, MIT-licensed, and built solo. If you find it useful, here are three ways to help.</p>
+    <div class="support">
+      <a class="support-card" href="https://github.com/the-distillery/distillarium" target="_blank" rel="noopener">
+        <span class="sico">⭐</span>
+        <div class="support-title">Star the repo</div>
+        <div class="support-desc">Free, takes one click. Signal helps me prioritize what to build next.</div>
+      </a>
+      <a class="support-card" href="https://github.com/the-distillery/distillarium/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">
+        <span class="sico">🍾</span>
+        <div class="support-title">Distill a Spirit</div>
+        <div class="support-desc">Write a recipe, distill, share. Every public Spirit ships with full Tasting Notes — including the failure cases.</div>
+      </a>
+      <a class="support-card" href="mailto:aeyoung.ts@gmail.com?subject=Distillery%20-%20enterprise%20inquiry">
+        <span class="sico">💌</span>
+        <div class="support-title">Sponsor / Enterprise</div>
+        <div class="support-desc">Need a custom Spirit, self-hosting, or compliance support? Drop a line. No salespeople.</div>
+      </a>
+    </div>
+
+    <div class="lab-note">
+      <p><strong>This is not a SaaS.</strong> The CLI is free, runs locally, uses your own teacher API key, and produces models you own. Nothing reports back to us. The "Cellar" is just a public showcase you can opt into.</p>
+      <p style="margin-top: 12px;">Built on top of the Research Radar pipeline — an autonomous research-to-product system. The Spirit you're looking at <a href="/cellar/needle">(Needle)</a> started life as a Show HN paper that the Radar surfaced last Tuesday.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    padding-top: 60px;
+    padding-bottom: 40px;
+    align-items: center;
+  }
+  .hero-left h1 {
+    font-size: 52px;
+    line-height: 1.05;
+    margin-bottom: 18px;
+    color: var(--brass);
+  }
+  .hero-left h1 .accent { color: var(--amber); }
+  .hero-left .tagline {
+    color: var(--paper);
+    opacity: 0.85;
+    font-size: 18px;
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+  .hero-left .actions { display: flex; gap: 14px; margin-bottom: 30px; }
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 24px; }
+  .stat { border: 2px solid var(--copper-dark); padding: 10px 12px; background: rgba(0,0,0,0.3); }
+  .stat .num { font-size: 24px; color: var(--brass); font-weight: 800; }
+  .stat .label { font-size: 10px; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.1em; }
+
+  section.flow { border-top: 3px solid var(--copper-dark); padding: 50px 0; }
+  .section-title { font-size: 28px; color: var(--brass); margin-bottom: 12px; }
+  .section-sub { opacity: 0.7; margin-bottom: 30px; max-width: 600px; }
+
+  .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .step {
+    border: 2px solid var(--copper-dark);
+    padding: 18px 18px 16px;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+  }
+  .step .ico { font-size: 32px; margin-bottom: 10px; display: block; line-height: 1; }
+  .step .name {
+    color: var(--amber);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+  .step .desc {
+    font-size: 13px;
+    opacity: 0.85;
+    line-height: 1.6;
+    text-wrap: pretty;
+    flex: 1;
+  }
+  .step .glossary {
+    font-size: 11px;
+    color: var(--green);
+    margin-top: 14px;
+    font-style: italic;
+    line-height: 1.4;
+  }
+  /* 3-step layout on tablet (smoother than jumping straight to 2-col) */
+  @media (max-width: 1200px) {
+    .steps { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .cellar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+  /* === Compound AI / pipeline replacement === */
+  .compound { display: grid; grid-template-columns: 1fr 80px 1fr; gap: 20px; align-items: stretch; margin-top: 16px; }
+  .compound-col {
+    border: 2px solid var(--copper-dark);
+    background: rgba(0,0,0,0.3);
+    padding: 18px 18px 14px;
+    display: flex;
+    flex-direction: column;
+  }
+  .compound-label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 800; margin-bottom: 12px; padding: 4px 10px; align-self: flex-start; border: 1px solid currentColor; }
+  .compound-label.before { color: var(--red); }
+  .compound-label.after  { color: var(--green); }
+  .pipeline { list-style: none; flex: 1; margin-bottom: 14px; }
+  .pipeline li { font-size: 13px; padding: 7px 0; border-bottom: 1px dashed rgba(255,255,255,0.08); line-height: 1.45; display: flex; align-items: center; gap: 8px; }
+  .step-dot { width: 8px; height: 8px; flex-shrink: 0; }
+  .step-dot.bad { background: var(--red); }
+  .step-dot.good { background: var(--green); }
+  .step-dot.mid { background: var(--amber); }
+  .compound-total {
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 13px;
+    border-top: 2px solid currentColor;
+    margin-top: auto;
+  }
+  .compound-total.bad { color: var(--red); }
+  .compound-total.good { color: var(--green); }
+  .compound-total strong { font-size: 18px; }
+  .compound-arrow { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+  .arrow-chevrons { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--amber); }
+  .arrow-chevrons span { display: block; font-size: 18px; line-height: 1; transform: rotate(0); }
+  .arrow-chevrons span:nth-child(1) { opacity: 0.3; }
+  .arrow-chevrons span:nth-child(2) { opacity: 0.6; }
+  .arrow-chevrons span:nth-child(3) { opacity: 1; }
+  .arrow-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brass); text-align: center; line-height: 1.3; font-weight: 800; }
+  .compound-delta {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 22px;
+  }
+  .delta-stat {
+    padding: 14px 12px;
+    border: 2px solid var(--green-dark);
+    background: rgba(106,190,48,0.06);
+    text-align: center;
+  }
+  .delta-stat .dn { font-size: 22px; color: var(--green); font-weight: 800; line-height: 1; }
+  .delta-stat .dl { font-size: 11px; opacity: 0.8; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* === Use Cases gallery === */
+  .uses { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .use {
+    border: 2px solid var(--copper-dark);
+    background: rgba(0,0,0,0.3);
+    padding: 18px;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.1s, box-shadow 0.1s, border-color 0.1s;
+  }
+  .use:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0 #000; border-color: var(--amber); }
+  .use .ico { font-size: 28px; display: block; margin-bottom: 8px; }
+  .use-title { color: var(--amber); font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 800; margin-bottom: 6px; }
+  .use-desc { font-size: 13px; opacity: 0.85; line-height: 1.5; margin-bottom: 10px; }
+  .use-recipe { font-size: 11px; opacity: 0.6; }
+  .use-recipe code { background: rgba(0,0,0,0.5); color: var(--brass); padding: 1px 6px; }
+
+  /* === Anatomy === */
+  .anatomy-grid { display: grid; grid-template-columns: 280px 1fr; gap: 40px; align-items: center; }
+  .anatomy-art {
+    border: 3px solid var(--copper-dark);
+    background: radial-gradient(ellipse at center, #0e0904 0%, #000 100%);
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.6);
+    padding: 14px;
+  }
+  .anatomy-art svg { width: 100%; height: auto; image-rendering: pixelated; }
+  .anatomy-art .part { transition: filter 0.15s, opacity 0.15s; cursor: pointer; }
+  .anatomy-art .part:not(.is-active) { opacity: 0.6; }
+  .anatomy-art .part.is-active { filter: drop-shadow(0 0 6px var(--amber)); opacity: 1; }
+  .anatomy-list { display: flex; flex-direction: column; gap: 12px; }
+  .anatomy-row {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 2px solid var(--copper-dark);
+    background: rgba(0,0,0,0.3);
+    align-items: flex-start;
+    transition: border-color 0.15s, transform 0.1s;
+    cursor: pointer;
+  }
+  .anatomy-row:hover, .anatomy-row.is-active { border-color: var(--amber); transform: translateX(2px); }
+  .anatomy-row .aico { font-size: 22px; }
+  .anatomy-row strong { color: var(--amber); }
+  .anatomy-row code { color: var(--brass); }
+
+  /* === Vocabulary === */
+  .vocab { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
+  .vocab-row {
+    display: grid;
+    grid-template-columns: 28px 160px 24px 1fr;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 12px;
+    border: 1px solid var(--copper-dark);
+    background: rgba(0,0,0,0.25);
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .vocab-row:hover { border-color: var(--amber); background: rgba(232,197,71,0.05); }
+  .vocab-row .vico { font-size: 18px; text-align: center; }
+  .vocab-row .term { color: var(--amber); font-weight: 800; font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .vocab-row .arrow { color: var(--copper); text-align: center; }
+  .vocab-row .defn { font-size: 13px; opacity: 0.85; line-height: 1.4; }
+
+  /* === Support the lab === */
+  .support { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .support-card {
+    border: 2px solid var(--copper-dark);
+    background: rgba(0,0,0,0.3);
+    padding: 24px;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.1s, box-shadow 0.1s, border-color 0.1s;
+  }
+  .support-card:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0 #000; border-color: var(--amber); }
+  .support-card .sico { font-size: 36px; display: block; margin-bottom: 10px; }
+  .support-title { color: var(--amber); font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 800; margin-bottom: 8px; }
+  .support-desc { font-size: 13px; opacity: 0.85; line-height: 1.5; }
+  .lab-note {
+    margin-top: 30px;
+    padding: 22px 26px;
+    border: 2px dashed var(--copper-dark);
+    background: rgba(0,0,0,0.2);
+    font-size: 13px;
+    line-height: 1.6;
+    opacity: 0.92;
+  }
+  .lab-note a { color: var(--amber); }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding: 30px 0; }
+    .hero-left h1 { font-size: 36px; }
+    .steps, .cellar, .uses, .support { grid-template-columns: repeat(2, 1fr); }
+    .compound { grid-template-columns: 1fr; }
+    .compound-arrow { transform: rotate(90deg); padding: 8px 0; }
+    .compound-delta { grid-template-columns: repeat(2, 1fr); }
+    .anatomy-grid { grid-template-columns: 1fr; }
+    .vocab { grid-template-columns: 1fr; }
+    .vocab-row { grid-template-columns: 28px 140px 20px 1fr; }
+  }
+</style>
+
+<script is:inline>
+  // Anatomy hover sync: hovering a row highlights the matching SVG part.
+  (function () {
+    const rows = document.querySelectorAll(".anatomy-row");
+    const parts = document.querySelectorAll(".anatomy-art .part");
+    if (!rows.length || !parts.length) return;
+
+    function clearAll() {
+      rows.forEach((r) => r.classList.remove("is-active"));
+      parts.forEach((p) => p.classList.remove("is-active"));
+    }
+    function activate(label) {
+      rows.forEach((r) => r.classList.toggle("is-active", r.dataset.target === label));
+      parts.forEach((p) => p.classList.toggle("is-active", p.dataset.label === label));
+    }
+    rows.forEach((r) => {
+      r.addEventListener("mouseenter", () => activate(r.dataset.target));
+      r.addEventListener("mouseleave", clearAll);
+    });
+    parts.forEach((p) => {
+      p.addEventListener("mouseenter", () => activate(p.dataset.label));
+      p.addEventListener("mouseleave", clearAll);
+    });
+  })();
+</script>

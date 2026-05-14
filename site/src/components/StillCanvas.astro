@@ -1,0 +1,470 @@
+---
+// The centerpiece distillation animation. Self-contained: copy/paste between pages.
+// Renders ~540×420 canvas with the alembic, swan-neck, helix, spirit flask,
+// teacher + student identity cards, and a live proof gauge.
+---
+<div class="still-frame">
+  <canvas id="still" width="540" height="420" aria-label="Live distillation animation: a copper still distills a teacher model into a smaller Spirit flask."></canvas>
+  <div class="telemetry">
+    <div class="t"><span class="k">Teacher</span><span class="v" id="tel-teacher">Gemini 2.5</span></div>
+    <div class="t"><span class="k">Examples</span><span class="v" id="tel-examples">0</span></div>
+    <div class="t"><span class="k">Proof</span><span class="v" id="tel-proof">0</span></div>
+    <div class="t"><span class="k">Yield</span><span class="v" id="tel-yield">0 ml</span></div>
+  </div>
+</div>
+
+<style>
+  .still-frame {
+    border: 4px solid var(--copper-dark);
+    background: radial-gradient(ellipse at center, #0e0904 0%, #000 100%);
+    box-shadow:
+      inset 0 0 40px rgba(0,0,0,0.8),
+      4px 4px 0 #000,
+      8px 8px 0 rgba(0,0,0,0.3);
+    padding: 16px;
+    position: relative;
+  }
+  .still-frame::before {
+    content: '⚗ THE STILL — LIVE';
+    position: absolute;
+    top: -14px;
+    left: 16px;
+    background: var(--bg);
+    color: var(--brass);
+    padding: 2px 10px;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    border: 2px solid var(--copper-dark);
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    image-rendering: pixelated;
+  }
+  .telemetry {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 14px;
+    font-size: 11px;
+  }
+  .telemetry .t {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--copper-dark);
+    padding: 6px 8px;
+  }
+  .telemetry .t .k {
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 9px;
+    display: block;
+  }
+  .telemetry .t .v {
+    color: var(--brass);
+    font-weight: 800;
+  }
+</style>
+
+<script is:inline>
+  /* ============================================================
+     The Still — pixel-art distillation animation
+     Layout: still left, long swan-neck, helix, spirit flask centered
+     under the coil outlet. Teacher/Student identity cards at the top.
+  ============================================================ */
+  (function () {
+    const cvs = document.getElementById("still");
+    if (!cvs) return;
+    const ctx = cvs.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
+
+    const W = cvs.width;
+    const H = cvs.height;
+    const PIXEL = 3;
+
+    let t = 0;
+    let drips = [];
+    let bubbles = [];
+    let teacherLevel = 1.0;
+    let spiritLevel = 0.0;
+    let proof = 0;
+    let examples = 0;
+    const TARGET_PROOF = 78;
+    const TARGET_EXAMPLES = 1000;
+
+    const PAL = {
+      bg: "#0a0604",
+      metal: "#a05a2a",
+      metalHi: "#d68d4a",
+      metalLo: "#5e2f0f",
+      glass: "#8ec5e8",
+      glassDark: "#3a5a7a",
+      teacher: "#5e3010",
+      teacherHi: "#a86a2c",
+      spirit: "#ffa432",
+      spiritHi: "#ffd87a",
+      flame: "#ff6b1a",
+      flameHi: "#ffd23a",
+      smoke: "#7a6a5a",
+      text: "#e8c547",
+      wood: "#3a1f0a",
+    };
+
+    function px(x, y, c, sz = PIXEL) {
+      ctx.fillStyle = c;
+      ctx.fillRect(Math.round(x), Math.round(y), sz, sz);
+    }
+    function rect(x, y, w, h, c) {
+      ctx.fillStyle = c;
+      ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+    }
+    function outlinedRect(x, y, w, h, fill, outline) {
+      rect(x, y, w, h, outline);
+      rect(x + 1, y + 1, w - 2, h - 2, fill);
+    }
+
+    function drawBg() {
+      ctx.fillStyle = PAL.bg;
+      ctx.fillRect(0, 0, W, H);
+      for (let y = 0; y < H; y += 4) {
+        for (let x = 0; x < W; x += 8) {
+          px(x, y, "rgba(101,67,33,0.10)", 1);
+        }
+      }
+    }
+
+    function drawStill(cx, cy) {
+      rect(cx - 60, cy + 60, 120, 14, PAL.metalLo);
+      rect(cx - 60, cy + 60, 120, 4, PAL.metalHi);
+      const w = 110, h = 90;
+      const y = cy - h / 2 + 10;
+      for (let dy = 0; dy < h; dy++) {
+        const r = (h / 2) * Math.sqrt(1 - Math.pow((dy - h / 2) / (h / 2), 2));
+        const ww = r * 2;
+        const xx = cx - ww / 2;
+        const shade = dy < h * 0.3 ? PAL.metalHi : dy < h * 0.7 ? PAL.metal : PAL.metalLo;
+        rect(xx, y + dy, ww, 1, shade);
+      }
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(cx, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      for (let i = 0; i < 6; i++) {
+        const ang = (i / 6) * Math.PI * 2;
+        const rx = cx + Math.cos(ang) * (w / 2 - 8);
+        const ry = y + h / 2 + Math.sin(ang) * (h / 2 - 8);
+        px(rx - 1, ry - 1, PAL.metalLo, 3);
+        px(rx, ry, "#000", 1);
+      }
+
+      const winX = cx - 18, winY = y + 20, winW = 36, winH = 36;
+      outlinedRect(winX, winY, winW, winH, "#0a0604", "#000");
+      const liqH = winH * teacherLevel;
+      rect(winX + 1, winY + winH - liqH, winW - 2, liqH, PAL.teacher);
+      bubbles.forEach((b) => {
+        if (b.x > winX && b.x < winX + winW && b.y > winY + winH - liqH && b.y < winY + winH) {
+          px(b.x, b.y, PAL.teacherHi, 2);
+        }
+      });
+      rect(winX + 2, winY + 2, 8, 2, "rgba(255,255,255,0.3)");
+
+      const neckW = 14;
+      rect(cx - neckW / 2, y - 18, neckW, 18, PAL.metal);
+      rect(cx - neckW / 2 + 1, y - 18, neckW - 2, 2, PAL.metalHi);
+
+      // Long swan-neck pipe — extends to the spirit flask area
+      const swanLen = 240;
+      rect(cx, y - 18, swanLen, 10, PAL.metal);
+      rect(cx, y - 18, swanLen, 2, PAL.metalHi);
+      rect(cx, y - 10, swanLen, 1, PAL.metalLo);
+      rect(cx + swanLen, y - 18, 10, 60, PAL.metal);
+      rect(cx + swanLen, y - 18, 2, 60, PAL.metalHi);
+      rect(cx + swanLen + 8, y - 18, 1, 60, PAL.metalLo);
+
+      const helixX = cx + swanLen + 5, helixY = y + 42;
+      ctx.strokeStyle = PAL.metal;
+      ctx.lineWidth = 4;
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.arc(helixX, helixY + i * 14, 14, 0, Math.PI);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(helixX, helixY + i * 14 + 7, 14, Math.PI, Math.PI * 2);
+        ctx.strokeStyle = PAL.metalLo;
+        ctx.stroke();
+        ctx.strokeStyle = PAL.metal;
+      }
+      rect(helixX - 1, helixY + 70, 4, 14, PAL.metal);
+    }
+
+    function drawSpiritFlask(cx, cy) {
+      rect(cx - 7, cy - 30, 14, 18, "#000");
+      rect(cx - 6, cy - 29, 12, 16, PAL.glass);
+      rect(cx - 5, cy - 28, 2, 12, "rgba(255,255,255,0.4)");
+
+      const r = 32;
+      ctx.beginPath();
+      ctx.arc(cx, cy + 10, r, 0, Math.PI * 2);
+      ctx.fillStyle = "#000";
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx, cy + 10, r - 2, 0, Math.PI * 2);
+      ctx.fillStyle = PAL.glass;
+      ctx.globalAlpha = 0.25;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy + 10, r - 2, 0, Math.PI * 2);
+      ctx.clip();
+
+      const fillTop = cy + 10 + r - r * 2 * spiritLevel;
+      rect(cx - r, fillTop, r * 2, r * 2, PAL.spirit);
+      rect(cx - r, fillTop, r * 2, 2, PAL.spiritHi);
+      rect(cx - r, fillTop + Math.sin(t / 6) * 1.5, r * 2, 1, "rgba(255,255,255,0.3)");
+      ctx.restore();
+
+      ctx.beginPath();
+      ctx.arc(cx - 10, cy + 5, 6, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255,255,255,0.25)";
+      ctx.fill();
+
+      rect(cx - 18, cy + 18, 36, 16, PAL.text);
+      rect(cx - 17, cy + 19, 34, 14, "#000");
+      ctx.fillStyle = PAL.text;
+      ctx.font = "bold 10px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("SPIRIT", cx, cy + 30);
+    }
+
+    function drawFlame(cx, cy) {
+      const wob = Math.sin(t / 3) * 2;
+      rect(cx - 30, cy + 18, 60, 8, PAL.wood);
+      rect(cx - 30, cy + 18, 60, 2, "#5a2f0a");
+      for (let i = -3; i <= 3; i++) {
+        const fx = cx + i * 6 + wob;
+        const fh = 14 + Math.sin(t / 4 + i) * 4 + (Math.abs(i) < 2 ? 6 : 0);
+        rect(fx - 3, cy + 18 - fh, 6, fh, PAL.flame);
+        rect(fx - 1, cy + 18 - fh + 4, 2, fh - 6, PAL.flameHi);
+      }
+      if (Math.random() < 0.3) {
+        drips.push({
+          x: cx + (Math.random() - 0.5) * 30,
+          y: cy + 5,
+          vy: -1 - Math.random(),
+          kind: "spark",
+          life: 20,
+        });
+      }
+    }
+
+    function spawnBubble() {
+      bubbles.push({
+        x: 100 + Math.random() * 36,
+        y: 200 + 36,
+        vy: -0.4 - Math.random() * 0.6,
+        life: 30 + Math.random() * 20,
+      });
+    }
+
+    function spawnDrip() {
+      drips.push({ x: 385, y: 295, vy: 0, kind: "drip", life: 50 });
+      examples += Math.floor(8 + Math.random() * 4);
+      if (examples > TARGET_EXAMPLES) examples = TARGET_EXAMPLES;
+      proof = Math.min(TARGET_PROOF, (examples / TARGET_EXAMPLES) * TARGET_PROOF);
+      spiritLevel = Math.min(0.85, (examples / TARGET_EXAMPLES) * 0.85);
+      teacherLevel = Math.max(0.2, 1.0 - (examples / TARGET_EXAMPLES) * 0.8);
+    }
+
+    function stepParticles() {
+      bubbles = bubbles.filter((b) => b.life-- > 0);
+      bubbles.forEach((b) => {
+        b.y += b.vy;
+      });
+
+      // Liquid surface — must match drawSpiritFlask (cy=340, r=32)
+      const LIQUID_Y = 382 - 64 * spiritLevel;
+      const splashes = [];
+
+      drips = drips.filter((d) => {
+        if (d.life-- <= 0) return false;
+        if (d.kind === "drip" && d.y >= LIQUID_Y) {
+          for (let i = 0; i < 3; i++) {
+            splashes.push({
+              x: d.x + (Math.random() - 0.5) * 6,
+              y: LIQUID_Y,
+              vy: -0.8 - Math.random() * 0.7,
+              kind: "splash",
+              life: 12 + Math.random() * 6,
+            });
+          }
+          return false;
+        }
+        return true;
+      });
+
+      drips.forEach((d) => {
+        if (d.kind === "spark") {
+          d.x += (Math.random() - 0.5) * 0.5;
+          d.y += d.vy;
+          d.vy += 0.05;
+        } else if (d.kind === "splash") {
+          d.x += (Math.random() - 0.5) * 0.6;
+          d.y += d.vy;
+          d.vy += 0.18;
+        } else {
+          d.vy += 0.18;
+          d.y += d.vy;
+        }
+      });
+
+      drips.push(...splashes);
+    }
+
+    function drawParticles() {
+      drips.forEach((d) => {
+        if (d.kind === "spark") {
+          px(d.x, d.y, PAL.flameHi, 2);
+        } else if (d.kind === "splash") {
+          px(d.x, d.y, PAL.spiritHi, 1);
+        } else {
+          px(d.x - 1, d.y - 1, PAL.spiritHi, 2);
+          px(d.x - 1, d.y + 1, PAL.spirit, 2);
+        }
+      });
+    }
+
+    function drawGauge() {
+      const x = 465, y = 200;
+      rect(x, y, 60, 20, "#000");
+      rect(x + 1, y + 1, 58, 18, "#1a1208");
+      ctx.fillStyle = PAL.text;
+      ctx.font = "bold 8px monospace";
+      ctx.textAlign = "left";
+      ctx.fillText("PROOF", x + 4, y + 9);
+      ctx.fillText(Math.round(proof) + "°", x + 4, y + 17);
+      rect(x, y + 26, 60, 8, "#000");
+      rect(x + 1, y + 27, Math.max(1, (proof / 100) * 58), 6, PAL.spirit);
+      rect(x, y + 44, 60, 20, "#000");
+      rect(x + 1, y + 45, 58, 18, "#1a1208");
+      ctx.fillStyle = PAL.spiritHi;
+      ctx.fillText("CUTS", x + 4, y + 53);
+      ctx.fillText(examples.toString().padStart(4, "0"), x + 4, y + 61);
+    }
+
+    function drawModelCards() {
+      // TEACHER (top-left, copper accent)
+      const tx = 22, ty = 18, tw = 200, th = 56;
+      rect(tx + 2, ty + 2, tw, th, "rgba(0,0,0,0.6)");
+      rect(tx, ty, tw, th, "#000");
+      rect(tx + 1, ty + 1, tw - 2, th - 2, "#2a1810");
+      rect(tx, ty, tw, 2, PAL.metalHi);
+      rect(tx, ty + th - 1, tw, 1, PAL.metalLo);
+      rect(tx, ty, 4, th, PAL.metal);
+      ctx.textAlign = "left";
+      ctx.fillStyle = PAL.metalHi;
+      ctx.font = "bold 9px monospace";
+      ctx.fillText("⚗  TEACHER · LARGE MODEL", tx + 10, ty + 14);
+      ctx.fillStyle = PAL.text;
+      ctx.font = "bold 18px monospace";
+      ctx.fillText("GEMINI 2.5", tx + 10, ty + 34);
+      ctx.fillStyle = PAL.spiritHi;
+      ctx.font = "bold 10px monospace";
+      ctx.fillText("~1.5T parameters", tx + 10, ty + 48);
+
+      // STUDENT (top-right, amber accent)
+      const sx = 322, sy = 18, sw = 200, sh = 56;
+      rect(sx + 2, sy + 2, sw, sh, "rgba(0,0,0,0.6)");
+      rect(sx, sy, sw, sh, "#000");
+      rect(sx + 1, sy + 1, sw - 2, sh - 2, "#2a1810");
+      rect(sx, sy, sw, 2, PAL.spirit);
+      rect(sx, sy + sh - 1, sw, 1, PAL.spiritHi);
+      rect(sx, sy, 4, sh, PAL.spirit);
+      ctx.fillStyle = PAL.spirit;
+      ctx.font = "bold 9px monospace";
+      ctx.fillText("🍾  STUDENT · DISTILLED", sx + 10, sy + 14);
+      ctx.fillStyle = PAL.text;
+      ctx.font = "bold 18px monospace";
+      ctx.fillText("SPIRIT", sx + 10, sy + 34);
+      ctx.fillStyle = PAL.spiritHi;
+      ctx.font = "bold 10px monospace";
+      ctx.fillText("20.7M params", sx + 10, sy + 48);
+
+      // DISTILL · arrow chevrons · compression ratio
+      // Vertically stacked between the two cards so nothing overlaps:
+      //   "DISTILL"     ← label (top)
+      //   ▶▶▶▶▶          ← animated chevrons (middle)
+      //   "~72,000×"    ← compression magnitude (bottom)
+      const ax = tx + tw + 4;
+      const colCx = (ax + sx) / 2;
+      ctx.textAlign = "center";
+
+      // Label
+      ctx.fillStyle = PAL.metalHi;
+      ctx.font = "bold 9px monospace";
+      ctx.fillText("DISTILL", colCx, 28);
+
+      // Animated chevrons — centered on colCx, span ~80px wide
+      const chevY = 38;
+      const chev = Math.floor((t / 6) % 5);
+      const chevStart = colCx - 36;
+      for (let i = 0; i < 5; i++) {
+        const cx = chevStart + i * 16;
+        const op = i === chev ? 1.0 : 0.25;
+        ctx.fillStyle = `rgba(255, 164, 50, ${op})`;
+        ctx.beginPath();
+        ctx.moveTo(cx, chevY - 4);
+        ctx.lineTo(cx + 6, chevY);
+        ctx.lineTo(cx, chevY + 4);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Compression magnitude
+      ctx.fillStyle = PAL.spiritHi;
+      ctx.font = "bold 11px monospace";
+      ctx.fillText("~72,000×", colCx, 56);
+    }
+
+    let lastDrip = 0;
+    function loop() {
+      t++;
+      if (t % 24 === 0) spawnBubble();
+      if (t - lastDrip > 12 && examples < TARGET_EXAMPLES) {
+        spawnDrip();
+        lastDrip = t;
+      }
+      stepParticles();
+
+      drawBg();
+      drawFlame(140, 290);
+      drawStill(140, 200);
+      drawSpiritFlask(385, 340);
+      drawParticles();
+      drawGauge();
+      drawModelCards();
+
+      const telEx = document.getElementById("tel-examples");
+      const telPr = document.getElementById("tel-proof");
+      const telYi = document.getElementById("tel-yield");
+      if (telEx) telEx.textContent = examples.toLocaleString();
+      if (telPr) telPr.textContent = Math.round(proof) + "°";
+      if (telYi) telYi.textContent = Math.round(spiritLevel * 50) + " ml";
+
+      if (examples >= TARGET_EXAMPLES && t % 200 === 0) {
+        examples = 0;
+        proof = 0;
+        spiritLevel = 0;
+        teacherLevel = 1.0;
+        lastDrip = t;
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  })();
+</script>

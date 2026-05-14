@@ -1,0 +1,17 @@
+{
+  "name": "thedistillery-site",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "thedistillery.run — landing page, Cellar, and docs",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview --host 127.0.0.1 --port 4321",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^5.0.0"
+  }
+}

@@ -1,0 +1,99 @@
+---
+interface Props {
+  slug: string;
+  name: string;
+  tagline: string;
+  proof: number;
+  proofMetric: string;
+  paramsM: number;
+  color: string;
+  author: string;
+}
+
+const { slug, name, tagline, proof, proofMetric, paramsM, color, author } = Astro.props;
+
+// Liquid fill % capped to 88% so glass top is visible
+const fillTopPct = Math.max(15, 100 - proof);
+---
+<a class="bottle" href={`/cellar/${slug}`}>
+  <div class="vessel">
+    <svg viewBox="0 0 60 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <!-- cork -->
+      <rect x="22" y="2" width="16" height="10" fill="#8b4513" stroke="#000" stroke-width="2"/>
+      <!-- bottle outline -->
+      <path d="M 18 14 L 42 14 L 46 30 L 46 76 L 14 76 L 14 30 Z" fill="#3a1f0a" stroke="#000" stroke-width="2"/>
+      <!-- liquid fill (proof-driven) -->
+      <path d={`M 18 ${14 + fillTopPct * 0.6} L 42 ${14 + fillTopPct * 0.6} L 44 76 L 16 76 Z`} fill={color}/>
+      <!-- label -->
+      <rect x="20" y="58" width="20" height="10" fill="#f4e4bc" stroke="#000" stroke-width="1"/>
+      <text x="30" y="65" font-family="monospace" font-size="6" text-anchor="middle" fill="#2a1810">
+        {name.slice(0, 6).toUpperCase()}
+      </text>
+    </svg>
+  </div>
+  <div class="bottle-name">{name} — {tagline}</div>
+  <div class="bottle-meta">
+    <span>{paramsM}M params</span>
+    <span>by {author}</span>
+  </div>
+  <div class="bottle-proof" style={`--proof: ${proof}%`}></div>
+  <div class="bottle-proof-num">{proof} PROOF · {proofMetric}</div>
+</a>
+
+<style>
+  .bottle {
+    border: 2px solid var(--copper-dark);
+    background: linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.7));
+    padding: 14px;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .bottle:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 #000;
+  }
+  .vessel {
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  .vessel svg { height: 90px; image-rendering: pixelated; }
+  .bottle-name {
+    color: var(--amber);
+    font-size: 14px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .bottle-meta {
+    font-size: 11px;
+    opacity: 0.7;
+    display: flex;
+    justify-content: space-between;
+  }
+  .bottle-proof {
+    margin-top: 8px;
+    height: 8px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--copper-dark);
+    position: relative;
+    overflow: hidden;
+  }
+  .bottle-proof::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: var(--proof, 67%);
+    background: linear-gradient(90deg, var(--green-dark), var(--green));
+  }
+  .bottle-proof-num {
+    font-size: 10px;
+    opacity: 0.8;
+    margin-top: 4px;
+    text-align: right;
+  }
+</style>

@@ -1,0 +1,153 @@
+/* The Distillery — global styles
+ * Pixel-art + copper/brass/amber palette
+ * Single file, deliberately small for fast page loads
+ */
+
+:root {
+  --bg: #1a1208;
+  --bg2: #2a1810;
+  --copper: #c97d3b;
+  --copper-dark: #8b4513;
+  --brass: #e8c547;
+  --amber: #ffa432;
+  --amber-dark: #b06820;
+  --green: #6abe30;
+  --green-dark: #2e5c1a;
+  --red: #c8503a;
+  --paper: #f4e4bc;
+  --ink: #2a1810;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--paper);
+  font-family: 'Courier New', 'Consolas', monospace;
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+}
+
+body {
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.06) 0 1px, transparent 1px 4px),
+    radial-gradient(ellipse at top, var(--bg2), var(--bg));
+  min-height: 100vh;
+}
+
+a { color: var(--brass); text-decoration: none; }
+a:hover { color: var(--amber); }
+
+.pixel-h {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  text-shadow: 2px 2px 0 #000, 3px 3px 0 rgba(0,0,0,0.3);
+}
+
+/* Buttons */
+.btn {
+  background: var(--green);
+  color: var(--ink);
+  border: 3px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  padding: 10px 18px;
+  font-family: 'Courier New', monospace;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: transform 0.05s;
+}
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 #000; color: var(--ink); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
+.btn-secondary { background: var(--copper); color: #000; }
+.btn-ghost { background: transparent; color: var(--brass); border-color: var(--copper-dark); box-shadow: 3px 3px 0 var(--copper-dark); }
+
+/* Nav */
+nav.site-nav {
+  border-bottom: 3px solid var(--copper-dark);
+  padding: 14px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg2);
+}
+.logo {
+  font-size: 22px;
+  color: var(--brass);
+  text-decoration: none;
+}
+.logo .flask { color: var(--amber); }
+.nav-links a {
+  color: var(--paper);
+  margin-left: 22px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.nav-links a:hover { color: var(--brass); }
+
+/* Layout helpers */
+.wrap { max-width: 1400px; margin: 0 auto; padding: 0 60px; }
+.frame {
+  border: 3px solid var(--copper-dark);
+  background: rgba(0,0,0,0.25);
+  padding: 26px 28px;
+  margin-bottom: 24px;
+  position: relative;
+}
+.frame::before {
+  content: attr(data-title);
+  position: absolute;
+  top: -12px;
+  left: 16px;
+  background: var(--bg);
+  color: var(--brass);
+  padding: 2px 12px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  border: 2px solid var(--copper-dark);
+  text-transform: uppercase;
+}
+
+/* Code */
+pre {
+  background: #0a0604;
+  border: 2px solid var(--copper-dark);
+  padding: 16px;
+  overflow-x: auto;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--paper);
+}
+pre .key { color: var(--brass); }
+pre .str { color: var(--green); }
+pre .num { color: var(--amber); }
+pre .com { color: rgba(255,255,255,0.4); font-style: italic; }
+code {
+  background: rgba(0,0,0,0.5);
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-size: 0.92em;
+  color: var(--brass);
+}
+
+footer {
+  text-align: center;
+  padding: 30px;
+  opacity: 0.5;
+  font-size: 12px;
+  border-top: 2px solid var(--copper-dark);
+  margin-top: 40px;
+}
+footer a { color: var(--brass); }
+
+@media (max-width: 900px) {
+  .wrap { padding: 0 20px; }
+  nav.site-nav { padding: 10px 16px; flex-wrap: wrap; gap: 8px; }
+  .nav-links a { margin-left: 12px; font-size: 11px; }
+}

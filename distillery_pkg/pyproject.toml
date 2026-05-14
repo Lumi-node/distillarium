@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "distillarium"
+version = "0.1.0"
+description = "Distill any task into a pocket-sized Spirit. Pure model. No API."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "The Distillery" },
+]
+keywords = ["distillation", "llm", "tool-calling", "model-compression", "ml"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Development Status :: 3 - Alpha",
+]
+dependencies = [
+    "torch>=2.0",
+    "transformers>=4.30",
+    "tokenizers>=0.13",
+    "numpy>=1.24",
+    "pyyaml>=6.0",
+    "click>=8.1",
+    "rich>=13.0",
+    "tqdm>=4.65",
+]
+
+[project.optional-dependencies]
+gemini = ["google-genai>=0.3"]
+onnx = ["onnx>=1.15", "onnxruntime>=1.17"]
+dev = ["pytest>=7.0", "pytest-cov>=4.0", "ruff>=0.1"]
+
+[project.scripts]
+distillery = "distillarium.cli:main"
+
+[project.urls]
+Homepage = "https://thedistillery.run"
+Documentation = "https://thedistillery.run/docs"
+Repository = "https://github.com/the-distillery/distillarium"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+distillarium = ["recipes/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --tb=short"

@@ -1,0 +1,157 @@
+[
+  {
+    "slug": "needle",
+    "name": "Needle",
+    "tagline": "Tool Calling",
+    "description": "Distilled from Gemini 2.5 Flash. An attention-only transformer that maps natural language to structured function calls. 15 tool categories. Designed for edge inference: 250 MB checkpoint, runs on CPU in under 50 ms per call. Zero API dependency at inference.",
+    "params_m": 20.7,
+    "proof": 78,
+    "proof_metric": "tool-name accuracy",
+    "arg_key_f1": 0.729,
+    "arg_key_precision": 0.85,
+    "arg_key_recall": 0.64,
+    "exact_call_accuracy": 0.03,
+    "final_loss": 0.732,
+    "loss_curve": [4.647, 3.014, 2.405, 1.89, 1.488, 1.171, 0.918, 0.732],
+    "teacher": "gemini-2.5-flash",
+    "teacher_params": "~1.5T",
+    "compression_ratio": "72,000×",
+    "size_mb": 249,
+    "distilled_at": "2026-05-13",
+    "vintage": "2026.05.13",
+    "batch": "001",
+    "author": "@cactus",
+    "source_paper": "https://github.com/cactus-compute/needle",
+    "source_paper_title": "Needle — Distilling Gemini Tool Calling into a 26M Model",
+    "downloads": {
+      "pytorch": {
+        "url": "#",
+        "size_mb": 249,
+        "available": true,
+        "description": "For training continuation, HuggingFace, custom Python."
+      },
+      "onnx": {
+        "url": null,
+        "size_mb": 100,
+        "available": false,
+        "description": "CPU/GPU inference, edge, browser via onnxruntime-web."
+      },
+      "gguf": {
+        "url": null,
+        "size_mb": 25,
+        "available": false,
+        "description": "Quantized for llama.cpp, mobile, embedded targets."
+      }
+    },
+    "color": "#ffa432",
+    "recipe": "needle.tool-calling-v1.yaml",
+    "tasting_notes": {
+      "strengths": [
+        "Strong tool-name selection on imperative queries (Set a timer..., Send a message to...)",
+        "High precision on argument keys (0.85) — when it produces an arg, it's usually a real one",
+        "Holds JSON structure consistently — never produces malformed nesting",
+        "Gracefully handles 3-6 tools in context window (the typical user scenario)",
+        "Inference cost: ~$0/call, runs CPU-only, 45ms median latency"
+      ],
+      "weaknesses": [
+        "Confused between adjacent social tools (predicts Twitter for an Instagram prompt)",
+        "Arg-key recall (0.64) — sometimes drops optional but useful args like unit",
+        "Exact-call accuracy only 3% — value-level prediction is the soft spot",
+        "WordPiece tokenizer introduces whitespace noise in decoded JSON",
+        "Untested on chained 2-tool calls (~20% of training data, untested in eval)"
+      ]
+    },
+    "samples": [
+      {
+        "utterance": "Hey, can you log my weight? I'm at 75 kilograms now.",
+        "gold": "log_health_metric(metric=weight, value=75)",
+        "predicted": "log_health_metric(metric=weight, value=75)",
+        "verdict": "exact"
+      },
+      {
+        "utterance": "Post on my Instagram story: 'Beach blast!'",
+        "gold": "post_social(platform=Instagram, ...)",
+        "predicted": "post_social(platform=Twitter, ...)",
+        "verdict": "wrong_value"
+      },
+      {
+        "utterance": "Text my wife, 'Don't forget the milk!'",
+        "gold": "send_message(contact=wife, message=...)",
+        "predicted": "send_message(contact=wife, message=...)",
+        "verdict": "exact"
+      },
+      {
+        "utterance": "What's the weather in Lisbon tomorrow?",
+        "gold": "get_weather(location=Lisbon, day=tomorrow)",
+        "predicted": "get_weather(location=Lisbon)",
+        "verdict": "missing_arg"
+      }
+    ]
+  },
+  {
+    "slug": "pii-guard",
+    "name": "PII Guard",
+    "tagline": "Privacy / Compliance",
+    "description": "Context-aware PII detection. Spots names, addresses, SSNs, credit cards in user prompts before they hit your LLM provider. Trained on synthetic data from Claude. CPU-runnable, sub-50 ms scan.",
+    "params_m": 14.0,
+    "proof": 82,
+    "proof_metric": "F1",
+    "teacher": "claude-sonnet-4.6",
+    "teacher_params": "~3T",
+    "compression_ratio": "200,000×",
+    "size_mb": 56,
+    "distilled_at": "2026-05-13",
+    "vintage": "2026.05.13",
+    "batch": "002",
+    "author": "@house",
+    "color": "#6abe30",
+    "recipe": "pii-guard-v1.yaml",
+    "downloads": {
+      "pytorch": { "url": "#", "size_mb": 56, "available": true, "description": "PyTorch checkpoint." }
+    }
+  },
+  {
+    "slug": "claimant",
+    "name": "Claimant",
+    "tagline": "Fact Check / Verification",
+    "description": "Distilled fact-checking head. Given a claim and a small context, produces a calibrated belief score with citations. Useful as a guardrail layer in front of long-form generation.",
+    "params_m": 32.0,
+    "proof": 91,
+    "proof_metric": "accuracy",
+    "teacher": "gemini-2.5-pro",
+    "teacher_params": "~2T",
+    "compression_ratio": "62,500×",
+    "size_mb": 128,
+    "distilled_at": "2026-05-13",
+    "vintage": "2026.05.13",
+    "batch": "003",
+    "author": "@house",
+    "color": "#ffa432",
+    "recipe": "claimant-v1.yaml",
+    "downloads": {
+      "pytorch": { "url": "#", "size_mb": 128, "available": false, "description": "Coming soon." }
+    }
+  },
+  {
+    "slug": "routor",
+    "name": "Routor",
+    "tagline": "Intent Classifier",
+    "description": "Multi-label intent router for agent frameworks. Given a user message, predicts which downstream tool/agent should handle it. 8M params, hilariously fast.",
+    "params_m": 8.0,
+    "proof": 74,
+    "proof_metric": "macro-F1",
+    "teacher": "claude-sonnet-4.6",
+    "teacher_params": "~3T",
+    "compression_ratio": "375,000×",
+    "size_mb": 32,
+    "distilled_at": "2026-05-13",
+    "vintage": "2026.05.13",
+    "batch": "004",
+    "author": "@nordic",
+    "color": "#e8c547",
+    "recipe": "routor-v1.yaml",
+    "downloads": {
+      "pytorch": { "url": "#", "size_mb": 32, "available": false, "description": "Coming soon." }
+    }
+  }
+]

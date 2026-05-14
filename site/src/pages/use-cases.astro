@@ -1,0 +1,237 @@
+---
+import Base from "../layouts/Base.astro";
+---
+<Base
+  title="Use cases · The Distillery"
+  description="Concrete things people are distilling — tool calling, PII, intent classification, query parsing, OCR structuring, plus the patterns that distinguish good from bad fits."
+>
+  <article class="wrap learn">
+    <header class="learn-head">
+      <p class="kicker">🧪 The Gallery</p>
+      <h1 class="pixel-h">Use cases</h1>
+      <p class="lede">Six concrete tasks people are distilling, plus the pattern that connects them. If your task fits the pattern, distillation will probably work. If it doesn't, don't force it.</p>
+    </header>
+
+    <!-- THE PATTERN -->
+    <section>
+      <h2>The pattern</h2>
+      <p>Every good distillation target shares the same three properties:</p>
+      <div class="pattern-grid">
+        <div class="pat">
+          <div class="pat-num">1</div>
+          <h3>Narrow</h3>
+          <p>The task is a single well-defined function: "given X, return Y." Not "be a helpful assistant."</p>
+        </div>
+        <div class="pat">
+          <div class="pat-num">2</div>
+          <h3>Repeated</h3>
+          <p>You'll run it thousands or millions of times. Each call is a chance to amortize the distillation cost.</p>
+        </div>
+        <div class="pat">
+          <div class="pat-num">3</div>
+          <h3>Verifiable</h3>
+          <p>You can write a held-out test set where each example has a clear correct answer. Otherwise Tasting Notes are meaningless.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- THE GALLERY -->
+    <section>
+      <h2>Six examples</h2>
+
+      <div class="use-cards">
+
+        <!-- 1. Tool calling -->
+        <article class="card">
+          <div class="card-head">
+            <span class="card-ico">🛠</span>
+            <div>
+              <h3>Tool calling for agents</h3>
+              <span class="card-status shipped">✓ shipped · 78° proof</span>
+            </div>
+          </div>
+          <p><strong>Problem:</strong> Your agent makes a Gemini/Claude call for every tool-routing decision. At 10 turns per session × 1000 sessions/day × $0.001/call = $10/day per workflow. And the latency adds up.</p>
+          <p><strong>Why distill:</strong> Tool calling is the canonical narrow-and-repeated task. The student just needs to look at the utterance + the catalog and emit a JSON call. A 20M model does this in 45 ms on CPU.</p>
+          <p><strong>Reference Spirit:</strong> <a href="/cellar/needle"><code>needle.tool-calling</code></a> — 20.7M params, 15 tool categories, $0.30 to distill.</p>
+        </article>
+
+        <!-- 2. PII redaction -->
+        <article class="card">
+          <div class="card-head">
+            <span class="card-ico">🔒</span>
+            <div>
+              <h3>PII redaction at the edge</h3>
+              <span class="card-status shipped">✓ shipped · 82° proof</span>
+            </div>
+          </div>
+          <p><strong>Problem:</strong> You want to send user prompts to a frontier LLM, but compliance says "don't ship PII." Regex misses everything (slang names, obfuscated emails, context-dependent identifiers).</p>
+          <p><strong>Why distill:</strong> Detection is local-only (the prompt never leaves the box). Sub-50ms means you can run it inline without adding perceptible latency.</p>
+          <p><strong>Reference Spirit:</strong> <a href="/cellar/pii-guard"><code>pii-guard</code></a> — 14M params, 0.82 F1.</p>
+        </article>
+
+        <!-- 3. Intent classifier -->
+        <article class="card">
+          <div class="card-head">
+            <span class="card-ico">🎯</span>
+            <div>
+              <h3>Intent classifier / agent router</h3>
+              <span class="card-status shipped">✓ shipped · 74° proof</span>
+            </div>
+          </div>
+          <p><strong>Problem:</strong> Your support chatbot needs to route incoming messages — "billing question? bug report? feature request?" — to the right team. You currently use a frontier model for this trivial decision.</p>
+          <p><strong>Why distill:</strong> Intent classification is what BERT was good at five years ago. You don't need 1.5T parameters to tell billing apart from bugs. 8M will do.</p>
+          <p><strong>Reference Spirit:</strong> <a href="/cellar/routor"><code>routor</code></a> — 8M params, multi-label macro-F1 0.74.</p>
+        </article>
+
+        <!-- 4. SQL query parser -->
+        <article class="card">
+          <div class="card-head">
+            <span class="card-ico">📊</span>
+            <div>
+              <h3>Natural language → SQL</h3>
+              <span class="card-status coming">○ coming v0.2</span>
+            </div>
+          </div>
+          <p><strong>Problem:</strong> Your data product lets users ask questions in English. You can pipe them through GPT, but (a) your schema leaks to OpenAI, (b) the round-trip ruins interactivity, (c) the bill scales linearly with active users.</p>
+          <p><strong>Why distill:</strong> A schema-aware student trained on your specific data model converges fast. Locally hosted = no schema leak. Latency-cheap = autocomplete-quality UX.</p>
+          <p><strong>The recipe:</strong> <code>data.sql-parse</code> — teacher emits (question, schema_excerpt, target_sql) triples. Student is schema-conditioned via cross-attention (same as Needle).</p>
+        </article>
+
+        <!-- 5. Receipt structurer -->
+        <article class="card">
+          <div class="card-head">
+            <span class="card-ico">🧾</span>
+            <div>
+              <h3>Receipt / form structurer</h3>
+              <span class="card-status coming">○ coming v0.2</span>
+            </div>
+          </div>
+          <p><strong>Problem:</strong> Expense apps need to turn OCR text → structured line items. Vendors charge per-page; latency means users wait while their phone uploads to your backend.</p>
+          <p><strong>Why distill:</strong> On-device inference (via GGUF or browser-WASM) means scan-to-structured happens before the user looks up from their phone. Privacy + speed + zero per-call cost.</p>
+          <p><strong>The recipe:</strong> <code>data.receipt-ner</code> — teacher generates synthetic receipt OCR text + the gold parse. Student learns the mapping at &lt;25 MB quantized.</p>
+        </article>
+
+        <!-- 6. Code explanation -->
+        <article class="card">
+          <div class="card-head">
+            <span class="card-ico">💻</span>
+            <div>
+              <h3>Code-snippet explainer (IDE plugin)</h3>
+              <span class="card-status experimental">⚗ experimental</span>
+            </div>
+          </div>
+          <p><strong>Problem:</strong> You want "hover for an English explanation" in your IDE plugin. Shipping every hover to an LLM is wasteful — most code is mundane and the explanations are repetitive.</p>
+          <p><strong>Why distill:</strong> Inline IDE features need millisecond response. A 30M-param explainer fine-tuned on a teacher's outputs can answer "what does this function do?" without leaving the editor.</p>
+          <p><strong>Status:</strong> No reference Spirit yet — but the pattern fits and the recipe is straightforward. Build it and share?</p>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ANTI-PATTERNS -->
+    <section>
+      <h2>Things you should NOT distill (be honest)</h2>
+      <p>These tasks look distillable but burn the budget without good Tasting Notes:</p>
+
+      <div class="antipat">
+        <div class="anti">
+          <h3>✗ "A helpful assistant"</h3>
+          <p>Too open-ended. The teacher's surface area is unbounded; you'll generate a corpus that mostly samples one slice. The student will look fine on canned questions and bomb on real ones.</p>
+        </div>
+        <div class="anti">
+          <h3>✗ Creative writing</h3>
+          <p>Output diversity is part of the deliverable. A student that memorizes 1000 teacher outputs produces 1000 templates. Use the teacher.</p>
+        </div>
+        <div class="anti">
+          <h3>✗ Tasks you don't have a held-out eval for</h3>
+          <p>Without a way to compute proof, you have no idea if the Spirit is good or just confident. Distill <em>after</em> you've shipped a manual eval set.</p>
+        </div>
+        <div class="anti">
+          <h3>✗ Multi-step reasoning</h3>
+          <p>Chain-of-thought is a property of scale. A 20M model can't do 6-step deductions reliably. Use the teacher; distill the <em>final step</em> if that's narrow and repeatable.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW TO PICK -->
+    <section>
+      <h2>How to know if YOUR task fits</h2>
+      <p>Answer these four questions honestly:</p>
+      <ol class="checklist">
+        <li><strong>Can you describe the task as a single function signature?</strong> If "given X, return Y" works, ✓.</li>
+        <li><strong>Will you call it more than a few thousand times?</strong> Setup is ~$0.30 + 30 min of GPU. You need volume to recoup.</li>
+        <li><strong>Do you have ~100 hand-labeled examples for the eval cut?</strong> Without these, you can't measure proof. (You don't need 1000 training examples — the teacher generates those.)</li>
+        <li><strong>Does the teacher itself do this task well?</strong> A student can match the teacher; it can't exceed it. If GPT/Claude/Gemini struggles, distillation won't help.</li>
+      </ol>
+      <p>4 out of 4 yes → distill. 3 out of 4 → maybe, with caveats. ≤2 → don't.</p>
+    </section>
+
+    <nav class="learn-nav">
+      <a href="/how" class="learn-cta secondary">← How it works</a>
+      <a href="/glossary" class="learn-cta">Next: the full vocabulary →</a>
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .learn { max-width: 900px; padding: 50px 0 70px; }
+  .learn-head { margin-bottom: 40px; }
+  .kicker { color: var(--copper); text-transform: uppercase; letter-spacing: 0.18em; font-size: 12px; margin-bottom: 8px; }
+  .learn h1 { font-size: 48px; color: var(--brass); line-height: 1.05; margin-bottom: 12px; }
+  .learn .lede { font-size: 17px; line-height: 1.55; opacity: 0.9; max-width: 700px; }
+  .learn section { margin-top: 56px; }
+  .learn h2 { font-size: 26px; color: var(--amber); margin-bottom: 16px; }
+  .learn h3 { font-size: 15px; color: var(--brass); margin-bottom: 8px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .learn p { font-size: 15px; line-height: 1.65; margin-bottom: 14px; opacity: 0.92; }
+  .learn p strong { color: var(--amber); }
+  .learn code { background: rgba(0,0,0,0.5); color: var(--brass); padding: 1px 6px; }
+  .learn a { color: var(--amber); }
+
+  /* Pattern */
+  .pattern-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 18px; }
+  .pat { padding: 18px; border: 2px solid var(--copper-dark); background: rgba(0,0,0,0.3); position: relative; }
+  .pat-num { position: absolute; top: -14px; left: -14px; width: 28px; height: 28px; border: 2px solid var(--brass); background: var(--bg); color: var(--brass); text-align: center; line-height: 24px; font-weight: 800; }
+  .pat h3 { margin-top: 4px; }
+
+  /* Use case cards */
+  .use-cards { display: flex; flex-direction: column; gap: 18px; }
+  .card { padding: 22px 24px; border: 2px solid var(--copper-dark); background: rgba(0,0,0,0.3); }
+  .card-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 12px; }
+  .card-ico { font-size: 34px; }
+  .card h3 { font-size: 17px; color: var(--brass); margin: 0 0 4px; text-transform: none; letter-spacing: 0.02em; }
+  .card-status { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 8px; border: 1px solid currentColor; display: inline-block; }
+  .card-status.shipped { color: var(--green); }
+  .card-status.coming { color: var(--amber); }
+  .card-status.experimental { color: var(--copper); }
+
+  /* Anti-pattern */
+  .antipat { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+  .anti { padding: 16px 18px; border: 2px solid var(--red); background: rgba(200,80,58,0.05); }
+  .anti h3 { color: var(--red); text-transform: none; letter-spacing: 0.02em; font-size: 15px; }
+  .anti p { font-size: 13px; margin: 0; opacity: 0.9; }
+
+  /* Checklist */
+  ol.checklist { padding-left: 24px; }
+  ol.checklist li { font-size: 15px; line-height: 1.65; margin: 10px 0; }
+  ol.checklist li strong { color: var(--amber); }
+
+  .learn-nav { margin-top: 60px; padding-top: 30px; border-top: 2px solid var(--copper-dark); display: flex; gap: 14px; flex-wrap: wrap; }
+  .learn-cta {
+    padding: 14px 22px;
+    border: 2px solid var(--copper-dark);
+    background: rgba(0,0,0,0.3);
+    color: var(--amber);
+    text-decoration: none;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    font-size: 14px;
+    transition: transform 0.1s, box-shadow 0.1s, border-color 0.1s;
+  }
+  .learn-cta:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0 #000; border-color: var(--amber); color: var(--amber); }
+  .learn-cta.secondary { color: var(--copper); }
+
+  @media (max-width: 800px) {
+    .pattern-grid, .antipat { grid-template-columns: 1fr; }
+    .learn h1 { font-size: 36px; }
+  }
+</style>

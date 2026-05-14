@@ -1,0 +1,51 @@
+# needle.tool-calling-v1 — reference Spirit for tool calling
+#
+# Reproduces the 67-proof Needle Spirit:
+#   - 1000 (utt, tools, call) triples from Gemini 2.5 Flash
+#   - 20.7M attention-only transformer with GLU instead of FFN
+#   - ~27 min wall time, ~$0.30 in Gemini API
+#
+# Run:
+#   distillery distill recipes/needle.tool-calling-v1.yaml
+
+name: needle.tool-calling
+version: 1
+
+teacher:
+  provider: gemini
+  model: gemini-2.5-flash
+  temperature: 0.9
+
+mash:
+  total_examples: 1000
+  examples_per_call: 10
+  tools_per_call: { min: 3, max: 6 }
+  seed: 2026
+
+student:
+  arch: attention-only-glu
+  d_model: 384
+  n_heads: 6
+  n_layers: 8
+  max_seq_len: 256
+  tokenizer: wordpiece-4096
+
+cuts:
+  train: 0.9
+  eval: 0.1
+
+still:
+  epochs: 8
+  batch_size: 16
+  lr: 3.0e-4
+  optimizer: adamw
+  grad_clip: 1.0
+
+tasting:
+  metrics: [tool_name_accuracy, arg_key_f1, exact_call_accuracy]
+  held_out: 100
+  decode: { temp: 0.1, json_mask: true }
+
+bottling:
+  formats: [pytorch, onnx]
+  signed: false

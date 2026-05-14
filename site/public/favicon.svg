@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges">
+  <!-- The Distillery alembic favicon · 16x16 pixel grid · scales to any size -->
+  <!-- Color palette matches the landing page (#1a1208 bg, copper, brass, amber) -->
+
+  <!-- Dark backdrop (rounded corners give the "tile" look) -->
+  <rect width="16" height="16" fill="#1a1208" rx="2"/>
+
+  <!-- Cork (top of bottle) -->
+  <rect x="6" y="2" width="4" height="2" fill="#8b4513"/>
+  <rect x="6" y="2" width="4" height="1" fill="#a85f1e"/>
+  <rect x="9" y="3" width="1" height="1" fill="#5a2f0a"/>
+
+  <!-- Neck (glass) -->
+  <rect x="6" y="4" width="4" height="2" fill="#3a5a7a"/>
+  <rect x="6" y="4" width="1" height="2" fill="#6a8eb0"/>
+
+  <!-- Shoulder taper -->
+  <rect x="4" y="6" width="8" height="1" fill="#3a5a7a"/>
+  <rect x="4" y="6" width="2" height="1" fill="#6a8eb0"/>
+
+  <!-- Body (bulb) — glass outline -->
+  <rect x="3" y="7" width="10" height="6" fill="#3a5a7a"/>
+
+  <!-- Amber spirit inside (fills 60% of body) -->
+  <rect x="4" y="9" width="8" height="4" fill="#ffa432"/>
+  <rect x="4" y="9" width="8" height="1" fill="#ffd87a"/>  <!-- surface highlight -->
+  <rect x="11" y="9" width="1" height="3" fill="#b06820"/>  <!-- right shadow -->
+
+  <!-- Bottom curve (pixel-rounded) -->
+  <rect x="4" y="13" width="8" height="1" fill="#3a5a7a"/>
+  <rect x="5" y="14" width="6" height="0" fill="#3a5a7a"/>
+
+  <!-- Glass highlights -->
+  <rect x="4" y="7" width="1" height="6" fill="#6a8eb0"/>
+  <rect x="5" y="7" width="1" height="1" fill="#8ec5e8"/>
+
+  <!-- "Steam" puff above the cork — single bright pixel for life -->
+  <rect x="7" y="0" width="1" height="1" fill="#e8c547"/>
+  <rect x="8" y="1" width="1" height="1" fill="#e8c547" opacity="0.6"/>
+</svg>

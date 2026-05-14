@@ -1,0 +1,301 @@
+---
+import Base from "../../layouts/Base.astro";
+import cellar from "../../data/cellar.json";
+
+export function getStaticPaths() {
+  return cellar.map((spirit) => ({
+    params: { slug: spirit.slug },
+    props: { spirit },
+  }));
+}
+
+const { spirit } = Astro.props;
+const proof = spirit.proof;
+const fillTopPct = Math.max(15, 100 - proof);
+---
+<Base
+  title={`${spirit.name} — ${spirit.tagline} · The Distillery`}
+  description={spirit.description}
+>
+  <div class="wrap" style="padding-top: 40px;">
+    <p class="crumbs">
+      <a href="/">Home</a> · <a href="/cellar">Cellar</a> ·
+      <span style="color: var(--brass);">{spirit.name}</span>
+    </p>
+
+    <div class="hero">
+      <!-- Big bottle display -->
+      <div class="bottle-display">
+        <svg viewBox="0 0 240 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- Cork -->
+          <rect x="98" y="20" width="44" height="40" fill="#8b4513" stroke="#000" stroke-width="2"/>
+          <rect x="98" y="20" width="44" height="8" fill="#a85f1e"/>
+          <!-- Neck -->
+          <rect x="100" y="60" width="40" height="30" fill="#3a5a7a" stroke="#000" stroke-width="2"/>
+          <rect x="104" y="62" width="6" height="26" fill="rgba(255,255,255,0.3)"/>
+          <!-- Shoulder -->
+          <path d="M 80 90 L 160 90 L 168 110 L 168 290 L 72 290 L 72 110 Z"
+                fill="#3a5a7a" stroke="#000" stroke-width="2"/>
+          <!-- Liquid -->
+          <path d={`M 76 ${110 + fillTopPct * 1.4} L 164 ${110 + fillTopPct * 1.4} L 164 286 L 76 286 Z`}
+                fill={spirit.color}/>
+          <!-- Surface highlight -->
+          <path d={`M 76 ${110 + fillTopPct * 1.4} L 164 ${110 + fillTopPct * 1.4} L 164 ${112 + fillTopPct * 1.4} L 76 ${112 + fillTopPct * 1.4} Z`}
+                fill="#ffd87a"/>
+          <!-- Glass highlight on left -->
+          <rect x="78" y="120" width="6" height="160" fill="rgba(255,255,255,0.12)"/>
+          <!-- Label -->
+          <rect x="84" y="200" width="72" height="64" fill="#f4e4bc" stroke="#000" stroke-width="2"/>
+          <rect x="88" y="204" width="64" height="3" fill="#2a1810"/>
+          <rect x="88" y="256" width="64" height="3" fill="#2a1810"/>
+          <text x="120" y="222" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" fill="#2a1810">
+            {spirit.name.toUpperCase()}
+          </text>
+          <text x="120" y="234" font-family="monospace" font-size="7" text-anchor="middle" fill="#2a1810">
+            {spirit.tagline.toUpperCase()}
+          </text>
+          <text x="120" y="245" font-family="monospace" font-size="7" text-anchor="middle" fill="#2a1810">
+            · {spirit.vintage} ·
+          </text>
+          <text x="120" y="253" font-family="monospace" font-size="9" font-weight="bold" text-anchor="middle" fill="#2a1810">
+            ★ {proof} PROOF ★
+          </text>
+        </svg>
+        <div class="vintage-tag">VINTAGE {spirit.vintage} · BATCH #{spirit.batch}</div>
+      </div>
+
+      <!-- Right column -->
+      <div class="hero-right">
+        <h1 class="pixel-h">{spirit.name.toUpperCase()}</h1>
+        <div class="subtitle">⚙ {spirit.tagline} Spirit</div>
+        <p class="desc">{spirit.description}</p>
+        <div class="badges">
+          <span class="badge gold">★ {proof} PROOF</span>
+          <span class="badge green">PASSED CUTS</span>
+          <span class="badge amber">{spirit.params_m}M PARAMS</span>
+          <span class="badge">CPU-RUNNABLE</span>
+        </div>
+        <div class="actions">
+          <a href="#download" class="btn">Download Bottle</a>
+          <a href="#recipe" class="btn btn-secondary">View Recipe</a>
+          <a href="#" class="btn btn-ghost">Fork Recipe</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="label">{spirit.proof_metric}</div>
+        <div class="num">{proof}%</div>
+        <div class="sub">on held-out cuts</div>
+      </div>
+      {spirit.arg_key_f1 !== undefined && (
+        <div class="stat-card">
+          <div class="label">Arg-key F1</div>
+          <div class="num">{spirit.arg_key_f1}</div>
+          <div class="sub">p={spirit.arg_key_precision} · r={spirit.arg_key_recall}</div>
+        </div>
+      )}
+      {spirit.final_loss !== undefined && (
+        <div class="stat-card">
+          <div class="label">Final loss</div>
+          <div class="num">{spirit.final_loss}</div>
+          <div class="sub">8 epochs</div>
+        </div>
+      )}
+      <div class="stat-card">
+        <div class="label">Compression</div>
+        <div class="num">{spirit.compression_ratio}</div>
+        <div class="sub">{spirit.teacher_params} → {spirit.params_m}M</div>
+      </div>
+    </div>
+
+    {spirit.tasting_notes && (
+      <section class="frame" data-title="✎ Tasting Notes">
+        <h2 style="color: var(--brass); font-size: 20px; margin-bottom: 14px;">Tasting Notes</h2>
+        <div class="notes-grid">
+          <div class="notes-col strengths">
+            <h3>✓ Strengths</h3>
+            <ul>
+              {spirit.tasting_notes.strengths.map((s) => <li>{s}</li>)}
+            </ul>
+          </div>
+          <div class="notes-col weaknesses">
+            <h3>✕ Weaknesses</h3>
+            <ul>
+              {spirit.tasting_notes.weaknesses.map((w) => <li>{w}</li>)}
+            </ul>
+          </div>
+        </div>
+
+        {spirit.samples && (
+          <>
+            <h3 style="margin-top: 28px; margin-bottom: 10px; color: var(--brass); font-size: 14px; letter-spacing: 0.1em;">SAMPLE PREDICTIONS</h3>
+            <table class="cases">
+              <thead>
+                <tr><th>Utterance</th><th>Gold</th><th>Predicted</th><th>Verdict</th></tr>
+              </thead>
+              <tbody>
+                {spirit.samples.map((s) => (
+                  <tr>
+                    <td>{s.utterance}</td>
+                    <td><code>{s.gold}</code></td>
+                    <td><code>{s.predicted}</code></td>
+                    <td class={s.verdict === "exact" ? "right" : "wrong"}>
+                      {s.verdict === "exact" ? "✓ exact" : `✕ ${s.verdict.replace("_", " ")}`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
+      </section>
+    )}
+
+    {spirit.loss_curve && (
+      <section class="frame" data-title="📉 Training Curve">
+        <h2 style="color: var(--brass); font-size: 20px; margin-bottom: 8px;">Distillation Run</h2>
+        <p style="opacity: 0.85; margin-bottom: 12px;">8 epochs over distilled examples. Final loss: <strong>{spirit.final_loss}</strong>.</p>
+        <div class="curve-frame">
+          <svg viewBox="0 0 800 180" preserveAspectRatio="none" style="width: 100%; height: 180px;">
+            {/* Grid lines */}
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <line x1="20" x2="780" y1={20 + i * 28} y2={20 + i * 28} stroke="rgba(101,67,33,0.3)" stroke-width="1"/>
+            ))}
+            {/* Loss line */}
+            <polyline
+              points={spirit.loss_curve.map((l, i) => `${20 + (760 * i) / (spirit.loss_curve.length - 1)},${20 + 140 * ((5 - l) / 5)}`).join(" ")}
+              fill="none"
+              stroke="#ffa432"
+              stroke-width="3"
+            />
+            {/* Dots */}
+            {spirit.loss_curve.map((l, i) => (
+              <circle
+                cx={20 + (760 * i) / (spirit.loss_curve.length - 1)}
+                cy={20 + 140 * ((5 - l) / 5)}
+                r="4"
+                fill="#e8c547"
+                stroke="#0a0604"
+                stroke-width="2"
+              />
+            ))}
+          </svg>
+        </div>
+      </section>
+    )}
+
+    <section class="frame" data-title="🌲 Lineage">
+      <h2 style="color: var(--brass); font-size: 20px; margin-bottom: 14px;">Provenance</h2>
+      <div class="lineage">
+        {spirit.source_paper && (
+          <div class="step"><strong>Source paper:</strong> <a href={spirit.source_paper}>{spirit.source_paper_title}</a></div>
+        )}
+        <div class="step"><strong>Teacher:</strong> <code>{spirit.teacher}</code> ({spirit.teacher_params} params)</div>
+        <div class="step"><strong>Recipe:</strong> <code>{spirit.recipe}</code></div>
+        <div class="step"><strong>Distilled:</strong> {spirit.distilled_at} by The Distillery v0.1 engine</div>
+        <div class="step"><strong>Author:</strong> {spirit.author}</div>
+      </div>
+    </section>
+
+    <section class="frame" data-title="🍾 Bottling" id="download">
+      <h2 style="color: var(--brass); font-size: 20px; margin-bottom: 14px;">Download Bottle</h2>
+      <p style="opacity:0.85; margin-bottom:14px;">Self-contained — model weights, tokenizer, and recipe in a single artifact. No API key needed at inference.</p>
+      <div class="dl-grid">
+        {Object.entries(spirit.downloads).map(([fmt, info]) => (
+          <div class="dl-card">
+            <div class="fmt">{fmt.toUpperCase()}</div>
+            <div class="size">{info.size_mb} MB {!info.available && <span style="opacity:0.5;">(coming)</span>}</div>
+            <div class="platform">{info.description}</div>
+            {info.available ? (
+              <a href={info.url} class="btn" style="width:100%; text-align:center;">Download</a>
+            ) : (
+              <button class="btn btn-secondary" style="width:100%;" disabled>Coming soon</button>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .crumbs { font-size: 12px; opacity: 0.7; margin-bottom: 20px; }
+  .crumbs a { color: var(--brass); }
+  .hero { display: grid; grid-template-columns: 340px 1fr; gap: 40px; margin-bottom: 50px; }
+
+  .bottle-display {
+    border: 4px solid var(--copper-dark);
+    background: radial-gradient(ellipse at center, #0e0904 0%, #000 100%);
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 4px 4px 0 #000;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+  }
+  .bottle-display::before {
+    content: '✦ SPIRIT';
+    position: absolute;
+    top: -12px;
+    left: 16px;
+    background: var(--bg);
+    color: var(--brass);
+    padding: 2px 10px;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    border: 2px solid var(--copper-dark);
+  }
+  .bottle-display svg { max-width: 100%; image-rendering: pixelated; }
+  .vintage-tag { font-size: 10px; letter-spacing: 0.15em; opacity: 0.6; margin-top: 10px; }
+
+  .hero-right h1 { font-size: 44px; color: var(--brass); margin-bottom: 6px; line-height: 1.05; }
+  .hero-right .subtitle { color: var(--amber); font-size: 16px; margin-bottom: 18px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .hero-right .desc { opacity: 0.85; line-height: 1.6; margin-bottom: 24px; max-width: 600px; }
+
+  .badges { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .badge { border: 2px solid var(--copper-dark); padding: 4px 10px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(0,0,0,0.3); }
+  .badge.gold { color: var(--brass); border-color: var(--brass); }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.amber { color: var(--amber); border-color: var(--amber); }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 40px; }
+  .stat-card { border: 2px solid var(--copper-dark); background: rgba(0,0,0,0.3); padding: 16px; }
+  .stat-card .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; opacity: 0.7; margin-bottom: 6px; }
+  .stat-card .num { font-size: 30px; color: var(--brass); font-weight: 800; line-height: 1; }
+  .stat-card .sub { font-size: 11px; opacity: 0.7; margin-top: 4px; }
+
+  .notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .notes-col h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 8px; }
+  .notes-col.strengths h3 { color: var(--green); }
+  .notes-col.weaknesses h3 { color: var(--red); }
+  .notes-col ul { list-style: none; }
+  .notes-col li { font-size: 13px; padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,0.1); line-height: 1.4; }
+  .notes-col.strengths li::before { content: '◆ '; color: var(--green); }
+  .notes-col.weaknesses li::before { content: '◇ '; color: var(--red); }
+
+  .curve-frame { background: #0a0604; border: 2px solid var(--copper-dark); padding: 12px; margin-top: 12px; }
+
+  .cases { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+  .cases th, .cases td { text-align: left; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); vertical-align: top; }
+  .cases th { color: var(--brass); text-transform: uppercase; letter-spacing: 0.1em; font-size: 10px; background: rgba(0,0,0,0.3); }
+  .cases .right { color: var(--green); }
+  .cases .wrong { color: var(--red); }
+
+  .dl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .dl-card { border: 2px solid var(--copper-dark); background: rgba(0,0,0,0.3); padding: 18px; text-align: center; }
+  .dl-card .fmt { font-size: 18px; color: var(--amber); font-weight: 800; margin-bottom: 4px; }
+  .dl-card .size { font-size: 11px; opacity: 0.6; margin-bottom: 12px; }
+  .dl-card .platform { font-size: 10px; opacity: 0.8; margin-bottom: 12px; line-height: 1.4; }
+
+  .lineage { font-size: 13px; line-height: 1.7; }
+  .lineage .step { padding: 6px 0; padding-left: 24px; position: relative; }
+  .lineage .step::before { content: '✦'; position: absolute; left: 0; color: var(--copper); }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; }
+    .stat-grid, .notes-grid, .dl-grid { grid-template-columns: 1fr; }
+    .hero-right h1 { font-size: 32px; }
+  }
+</style>

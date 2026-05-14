@@ -1,0 +1,78 @@
+---
+import Base from "../layouts/Base.astro";
+---
+<Base title="Docs · The Distillery" description="How to install and use the distillery CLI.">
+  <div class="wrap" style="padding: 50px 0; max-width: 900px;">
+    <h1 class="pixel-h" style="font-size: 36px; color: var(--brass);">📜 Docs</h1>
+    <p style="opacity: 0.75; margin: 12px 0 32px;">Quick start for the <code>distillery</code> CLI. Full reference coming soon.</p>
+
+    <h2 style="color: var(--amber); font-size: 22px; margin-bottom: 12px;">Install</h2>
+<pre>pip install distillarium[gemini]
+distillery --version
+<span class="com"># → distillery, version 0.1.0</span></pre>
+
+    <h2 style="color: var(--amber); font-size: 22px; margin: 32px 0 12px;">Set a teacher API key</h2>
+<pre><span class="com"># Gemini Flash is the default teacher (cheapest at ~$0.30 / 1000 examples).</span>
+export GOOGLE_API_KEY=your-key-here</pre>
+
+    <h2 style="color: var(--amber); font-size: 22px; margin: 32px 0 12px;">Distill your first Spirit</h2>
+<pre><span class="com"># Use the reference Needle recipe (15 tool categories, ~20.7M params).</span>
+distillery distill recipes/needle.tool-calling-v1.yaml --out spirits/
+
+<span class="com"># Expected: ~30 minutes, ~$0.30 in Gemini API, 78° proof on held-out.</span></pre>
+
+    <h2 style="color: var(--amber); font-size: 22px; margin: 32px 0 12px;">Inspect your Cellar</h2>
+<pre>distillery cellar
+<span class="com">#                🍾 Your Cellar</span>
+<span class="com"># ┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━┓</span>
+<span class="com"># ┃ Spirit              ┃ Proof ┃ Params ┃</span>
+<span class="com"># ┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━┩</span>
+<span class="com"># │ needle.tool-calling │  78°  │ 20.7M  │</span>
+<span class="com"># └─────────────────────┴───────┴────────┘</span></pre>
+
+    <h2 style="color: var(--amber); font-size: 22px; margin: 32px 0 12px;">Re-taste against fresh data</h2>
+<pre>distillery taste spirits/needle.pt --mash new_held_out.jsonl</pre>
+
+    <h2 style="color: var(--amber); font-size: 22px; margin: 32px 0 12px;">Bottle for deployment</h2>
+<pre><span class="com"># ONNX for cross-runtime inference</span>
+distillery bottle spirits/needle.pt --format onnx
+
+<span class="com"># GGUF for llama.cpp / mobile (coming in v0.2)</span>
+distillery bottle spirits/needle.pt --format gguf</pre>
+
+    <h2 style="color: var(--amber); font-size: 22px; margin: 32px 0 12px;">Recipe schema</h2>
+<pre><span class="key">name</span>: needle.tool-calling
+<span class="key">version</span>: <span class="num">1</span>
+
+<span class="key">teacher</span>:
+  <span class="key">provider</span>: <span class="str">gemini</span>
+  <span class="key">model</span>: <span class="str">gemini-2.5-flash</span>
+  <span class="key">temperature</span>: <span class="num">0.9</span>
+
+<span class="key">mash</span>:
+  <span class="key">total_examples</span>: <span class="num">1000</span>
+  <span class="key">examples_per_call</span>: <span class="num">10</span>
+
+<span class="key">student</span>:
+  <span class="key">arch</span>: <span class="str">attention-only-glu</span>
+  <span class="key">d_model</span>: <span class="num">384</span>
+  <span class="key">n_heads</span>: <span class="num">6</span>
+  <span class="key">n_layers</span>: <span class="num">8</span>
+
+<span class="key">cuts</span>: &#123; <span class="key">train</span>: <span class="num">0.9</span>, <span class="key">eval</span>: <span class="num">0.1</span> &#125;
+
+<span class="key">still</span>:
+  <span class="key">epochs</span>: <span class="num">8</span>
+  <span class="key">batch_size</span>: <span class="num">16</span>
+  <span class="key">lr</span>: <span class="num">3.0e-4</span>
+
+<span class="key">tasting</span>:
+  <span class="key">metrics</span>: [tool_name_accuracy, arg_key_f1, exact_call_accuracy]
+  <span class="key">held_out</span>: <span class="num">100</span></pre>
+
+    <div style="margin-top: 60px; padding: 20px; border: 2px dashed var(--copper-dark); text-align: center; opacity: 0.85;">
+      <p>Full reference at <a href="https://github.com/the-distillery/distillarium">github.com/the-distillery/distillarium</a></p>
+      <p style="margin-top: 8px; font-size: 13px; opacity: 0.7;">Questions? Open an issue or join the Discord (coming soon).</p>
+    </div>
+  </div>
+</Base>

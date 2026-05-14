@@ -1,0 +1,348 @@
+---
+import Base from "../layouts/Base.astro";
+---
+<Base
+  title="Why distill? · The Distillery"
+  description="Your agent pipeline is 6 frontier LLM calls. Most of them don't need to be. Replace the narrow ones with cheap, composable Spirits and keep the frontier LLM for the one step that actually needs it."
+>
+  <article class="wrap learn">
+    <header class="learn-head">
+      <p class="kicker">📜 The Case</p>
+      <h1 class="pixel-h">Your agent pipeline is 6 frontier LLM calls. Most of them don't need to be.</h1>
+      <p class="lede">Modern AI products chain together half a dozen LLM calls per user action — intent, routing, redaction, classification, generation, validation. The frontier model is great at <strong>one</strong> of those. The other five are narrow tasks dressed up as general intelligence. <em>That's the distillation opportunity.</em></p>
+    </header>
+
+    <!-- THE PIPELINE COMPARISON -->
+    <section>
+      <h2>The pipeline replacement story</h2>
+      <p>Here's a typical customer-support pipeline. Every box is a separate call to Claude / GPT / Gemini.</p>
+
+      <h3 style="margin-top: 28px;">Before — every step is a frontier call</h3>
+<pre class="diagram">
+user msg ──→ ┌────────────────────┐
+             │  intent classifier │ ─→ $0.005 / 400 ms   (Claude/GPT)
+             └──────────┬─────────┘
+                        ↓
+             ┌────────────────────┐
+             │  PII redactor      │ ─→ $0.005 / 400 ms   (Claude/GPT)
+             └──────────┬─────────┘
+                        ↓
+             ┌────────────────────┐
+             │  urgency scorer    │ ─→ $0.005 / 400 ms   (Claude/GPT)
+             └──────────┬─────────┘
+                        ↓
+             ┌────────────────────┐
+             │  agent router      │ ─→ $0.005 / 400 ms   (Claude/GPT)
+             └──────────┬─────────┘
+                        ↓
+             ┌────────────────────┐
+             │ response generator │ ─→ $0.020 / 1500 ms  (Claude/GPT)  ← actually hard
+             └──────────┬─────────┘
+                        ↓
+             ┌────────────────────┐
+             │ brand/tone check   │ ─→ $0.005 / 400 ms   (Claude/GPT)
+             └──────────┬─────────┘
+                        ↓
+                   response
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━
+            $0.045  /  3,500 ms  /  6 vendor dependencies</pre>
+
+      <h3 style="margin-top: 36px;">After — distill the narrow tasks, keep frontier for the hard one</h3>
+<pre class="diagram">
+user msg ──→ ┌────────────────────┐
+             │ 🍾 Spirit: intent   │ ─→ $0 / 30 ms        (8M, CPU, local)
+             └──────────┬─────────┘
+                        ↓
+             ┌────────────────────┐
+             │ 🍾 Spirit: PII      │ ─→ $0 / 30 ms        (14M, CPU, local)
+             └──────────┬─────────┘
+                        ↓
+             ┌────────────────────┐
+             │ 🍾 Spirit: urgency  │ ─→ $0 / 30 ms        (8M, CPU, local)
+             └──────────┬─────────┘
+                        ↓
+             ┌────────────────────┐
+             │ 🍾 Spirit: router   │ ─→ $0 / 50 ms        (20M, CPU, local)
+             └──────────┬─────────┘
+                        ↓
+             ┌────────────────────┐
+             │  Frontier LLM      │ ─→ $0.020 / 1500 ms   ← keep ONE call for the hard step
+             └──────────┬─────────┘
+                        ↓
+             ┌────────────────────┐
+             │ 🍾 Spirit: tone     │ ─→ $0 / 30 ms        (10M, CPU, local)
+             └──────────┬─────────┘
+                        ↓
+                   response
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━
+            $0.020  /  1,670 ms  /  1 vendor dependency</pre>
+    </section>
+
+    <!-- THE DELTAS -->
+    <section>
+      <h2>The deltas, at scale</h2>
+
+      <table class="delta-table">
+        <thead>
+          <tr><th></th><th>Before (all frontier)</th><th>After (compound)</th><th>Δ</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Cost per conversation</td><td>$0.045</td><td>$0.020</td><td class="win">−56%</td></tr>
+          <tr><td>End-to-end latency</td><td>3,500 ms</td><td>1,670 ms</td><td class="win">−52%</td></tr>
+          <tr><td>Vendor dependencies</td><td>6 different LLM endpoints</td><td>1</td><td class="win">−83%</td></tr>
+          <tr><td>Rate-limit surfaces</td><td>6 separate quotas</td><td>1</td><td class="win">−83%</td></tr>
+          <tr><td>Compliance audit scope</td><td>6 vendor relationships</td><td>1 vendor + your weights</td><td class="win">huge</td></tr>
+          <tr><td>At 1M conversations/day</td><td>$45,000/day</td><td>$20,000/day</td><td class="win">$9M/yr saved</td></tr>
+          <tr><td>At 10M conversations/day</td><td>$450,000/day</td><td>$200,000/day</td><td class="win">$90M/yr saved</td></tr>
+        </tbody>
+      </table>
+
+      <p class="note">Cost numbers use Claude Sonnet 4.6 pricing as of 2026-05. Latency is end-to-end including network. Numbers shift with model choice — but the <em>shape</em> of the win holds.</p>
+    </section>
+
+    <!-- THE THREE WALLS -->
+    <section>
+      <h2>Why this matters (the three walls)</h2>
+      <p>Every team building with LLMs eventually hits the same three walls. The pipeline replacement above is what knocks each one down.</p>
+
+      <div class="wall-grid">
+        <div class="wall">
+          <div class="wall-tag">Wall 1</div>
+          <h3>Cost</h3>
+          <p>Frontier calls are $0.001 – $0.10 each. Multiply by every interaction, every retry, every tool turn. The bill is unbounded — and most of it pays for capability you don't use.</p>
+          <p class="aside">A distilled 20M-param Spirit costs <strong>$0.00</strong> per call. Forever.</p>
+        </div>
+        <div class="wall">
+          <div class="wall-tag">Wall 2</div>
+          <h3>Latency</h3>
+          <p>Even the fastest API roundtrip is 200-800 ms. For autocomplete, voice, real-time agents — that's the floor you can't get below.</p>
+          <p class="aside">A Spirit on the same machine answers in <strong>30-80 ms</strong>. No network at all.</p>
+        </div>
+        <div class="wall">
+          <div class="wall-tag">Wall 3</div>
+          <h3>Lock-in</h3>
+          <p>Your product's reliability = the reliability of someone else's API. Outages, rate limits, model deprecations, ToS changes — all theirs to decide.</p>
+          <p class="aside">A bottled Spirit runs forever, exactly as it was the day you bottled it.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- THREE OPTIONS COMPARED -->
+    <section>
+      <h2>The three options, compared honestly</h2>
+      <p>Distillation isn't always the answer. Here's where each one wins:</p>
+
+      <div class="opts">
+        <table class="opt-table">
+          <thead>
+            <tr><th></th><th>Frontier API</th><th>LoRA / Full FT</th><th>Distillation</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Best for</td><td>General reasoning, novel tasks, prototyping</td><td>Capability extension on a generalist</td><td>Single, repeatable task in production</td></tr>
+            <tr><td>Final model size</td><td>~1T+ (theirs)</td><td>7B+ (same as base)</td><td><strong>5-50M</strong></td></tr>
+            <tr><td>Inference target</td><td>Cloud API</td><td>GPU</td><td><strong>CPU, edge, browser</strong></td></tr>
+            <tr><td>Cost per call</td><td>$0.001 – $0.10</td><td>~$0.0001 (your GPU)</td><td><strong>$0</strong></td></tr>
+            <tr><td>Latency</td><td>200-800 ms</td><td>50-200 ms</td><td><strong>30-80 ms</strong></td></tr>
+            <tr><td>Vendor lock-in</td><td>Total</td><td>Base model only</td><td><strong>None — you own the weights</strong></td></tr>
+            <tr><td>Setup cost</td><td>~$0</td><td>$$$$ (GPU + data)</td><td>~$0.30 (teacher) + ~30 min GPU</td></tr>
+            <tr><td>Quality ceiling</td><td>Teacher's full capability</td><td>Base + your delta</td><td>≤ Teacher's capability on the narrow task</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="note">The honest tradeoff: distillation gives up generality for size, speed, and ownership. If your task is narrow and you do it a lot — that's a trade you'll happily make.</p>
+    </section>
+
+    <!-- HOW IS COMPRESSION EVEN POSSIBLE -->
+    <section>
+      <h2>How is 1.5T → 20M even possible?</h2>
+      <p>A frontier LLM is a Swiss Army knife with a thousand blades. Your tool-calling endpoint uses one of them.</p>
+      <p>Distillation works because <strong>your task doesn't need the other 999 blades</strong>. The teacher generates synthetic examples that pin down exactly the surface area you care about, and the student learns just that surface.</p>
+
+      <pre class="diagram">
+TEACHER (1.5T params)                  STUDENT (20M params)
+┌──────────────────────────┐           ┌──────────────┐
+│  reasoning · code · poem │           │              │
+│  translation · math      │           │  tool-call   │
+│  rag · summarize · chat  │  ──→──→   │  parsing     │
+│  ▶ tool-call parsing ◀   │           │              │
+│  audio · vision · …      │           │              │
+└──────────────────────────┘           └──────────────┘
+   "knows everything"                    "knows the part you need"
+                                          ~72,000× smaller
+                                          ~10,000× cheaper at inference</pre>
+
+      <p>The compression ratio is a function of how narrow your task is. Wide tasks (general assistant): hard to distill, large student needed. Narrow tasks (intent classifier, NER, function-call parser): drop 4-5 orders of magnitude with minor quality loss.</p>
+    </section>
+
+    <!-- WHEN TO DISTILL -->
+    <section>
+      <h2>When to distill — and when not to</h2>
+
+      <div class="when-grid">
+        <div class="when good">
+          <h3>✓ Good fit</h3>
+          <ul>
+            <li>The task is narrow and repeatable (function calling, classification, NER, routing, redaction)</li>
+            <li>You make many calls per user session</li>
+            <li>Latency matters (autocomplete, voice, on-device)</li>
+            <li>You need offline / edge / browser inference</li>
+            <li>Privacy / compliance forbids shipping data to a vendor</li>
+            <li>You want a model you can audit, fork, and version</li>
+          </ul>
+        </div>
+        <div class="when bad">
+          <h3>✗ Bad fit</h3>
+          <ul>
+            <li>The task is open-ended ("be a helpful assistant")</li>
+            <li>Each call is unique (one-off creative writing)</li>
+            <li>You're still figuring out what the task IS — distill <em>after</em> you've validated</li>
+            <li>You don't have a held-out eval set to measure proof against</li>
+            <li>The teacher itself is unreliable on this task — a student can't beat a bad teacher</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- THE BET -->
+    <section>
+      <h2>The bet</h2>
+      <p>The trajectory of frontier models is bigger, slower, more expensive, more political. The trajectory of efficient inference is smaller, faster, edge-runnable, owned.</p>
+      <p>Most production AI workloads are <strong>narrow tasks dressed up as general intelligence</strong>. Once you have a teacher that can do the task at all, the engineering problem is to compress it to where it costs nothing and runs everywhere.</p>
+      <p>That's the bet behind The Distillery. Not that frontier models stop mattering — they remain the source. But that the <strong>delivery vehicle</strong> for production AI is increasingly a tiny student trained on a tiny pile of teacher-generated examples — and that production pipelines stop being <em>"frontier LLM all the way down"</em> and start being <em>"a constellation of cheap Spirits with one frontier call where the reasoning actually lives."</em></p>
+    </section>
+
+    <!-- ENTERPRISE CTA -->
+    <section class="enterprise">
+      <div class="ent-head">
+        <p class="kicker">💼 For enterprise teams</p>
+        <h2>Bleeding $$$ on frontier calls for narrow tasks?</h2>
+      </div>
+      <p>If your stack looks like the "before" diagram above and your monthly LLM bill has a comma in it — we can help you replace it with a constellation of distilled Spirits, end to end.</p>
+
+      <div class="ent-grid">
+        <div class="ent-card">
+          <h3>Discovery</h3>
+          <p>We audit your existing pipeline, identify the steps where distillation will work (and where it won't), and produce a ranked savings forecast.</p>
+          <p class="ent-rate">2 weeks · fixed fee</p>
+        </div>
+        <div class="ent-card featured">
+          <h3>Build</h3>
+          <p>We distill each narrow task into a production-ready Spirit. Includes Tasting Notes, deployment package, integration code, and a 30-day maintenance handover.</p>
+          <p class="ent-rate">$50k–200k · 6-12 weeks per pipeline</p>
+        </div>
+        <div class="ent-card">
+          <h3>Run</h3>
+          <p>Monthly retainer: monitor drift, re-age Spirits on new data, ship updates, on-call for incidents. We act as your distillation team-of-one.</p>
+          <p class="ent-rate">$5k/month · cancellable anytime</p>
+        </div>
+      </div>
+
+      <div class="ent-cta">
+        <a href="mailto:aeyoung.ts@gmail.com?subject=Distillery%20-%20pipeline%20replacement%20inquiry&body=Hi%2C%20I'd%20like%20to%20talk%20about%20replacing%20parts%20of%20our%20LLM%20pipeline%20with%20distilled%20Spirits.%0A%0AOur%20current%20stack%3A%0A%0AMonthly%20LLM%20spend%3A%0A%0AMost%20expensive%20narrow%20step%3A%0A%0A" class="btn">📨 Talk to us about your pipeline</a>
+        <p class="ent-note">No sales team. No SDR funnel. You email me, I read it. — Andrew</p>
+      </div>
+    </section>
+
+    <nav class="learn-nav">
+      <a href="/how" class="learn-cta">Next: how it actually works →</a>
+      <a href="/use-cases" class="learn-cta secondary">See concrete use cases →</a>
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .learn { max-width: 880px; padding: 50px 0 70px; }
+  .learn-head { margin-bottom: 40px; }
+  .kicker { color: var(--copper); text-transform: uppercase; letter-spacing: 0.18em; font-size: 12px; margin-bottom: 8px; }
+  .learn h1 { font-size: 38px; color: var(--brass); line-height: 1.12; margin-bottom: 16px; text-wrap: balance; }
+  .learn .lede { font-size: 17px; line-height: 1.6; opacity: 0.92; max-width: 720px; text-wrap: pretty; }
+  .learn .lede em { color: var(--amber); font-style: normal; }
+  .learn section { margin-top: 56px; }
+  .learn h2 { font-size: 26px; color: var(--amber); margin-bottom: 16px; text-wrap: balance; }
+  .learn h3 { font-size: 16px; color: var(--brass); margin-bottom: 8px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .learn p { font-size: 15px; line-height: 1.7; margin-bottom: 14px; opacity: 0.92; text-wrap: pretty; }
+  .learn p.note { opacity: 0.75; font-style: italic; padding: 12px 16px; border-left: 3px solid var(--copper); background: rgba(0,0,0,0.2); font-size: 14px; }
+  .learn p.note em { color: var(--paper); }
+  .learn p.aside { font-size: 13px; color: var(--green); margin-top: 6px; }
+  .learn p strong { color: var(--amber); }
+
+  /* Diagrams */
+  .diagram { background: #0a0604; border: 2px solid var(--copper-dark); padding: 16px; font-size: 12px; line-height: 1.5; color: var(--paper); white-space: pre; overflow-x: auto; margin: 8px 0; }
+
+  /* Delta table */
+  .delta-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 16px; }
+  .delta-table th, .delta-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(101,67,33,0.4); vertical-align: top; }
+  .delta-table th { color: var(--brass); text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; background: rgba(0,0,0,0.3); }
+  .delta-table td:first-child { color: var(--copper); }
+  .delta-table .win { color: var(--green); font-weight: 800; }
+
+  /* Three walls */
+  .wall-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+  .wall { padding: 18px; border: 2px solid var(--copper-dark); background: rgba(0,0,0,0.3); }
+  .wall-tag { font-size: 11px; color: var(--copper); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 6px; }
+
+  /* Comparison table */
+  .opts { overflow-x: auto; margin-top: 18px; }
+  .opt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .opt-table th, .opt-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(101,67,33,0.4); vertical-align: top; }
+  .opt-table th { color: var(--brass); text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; background: rgba(0,0,0,0.3); }
+  .opt-table tbody tr:hover { background: rgba(232,197,71,0.04); }
+  .opt-table td:first-child { color: var(--copper); font-weight: 600; }
+  .opt-table strong { color: var(--amber); }
+
+  /* When grid */
+  .when-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .when { padding: 20px; border: 2px solid var(--copper-dark); background: rgba(0,0,0,0.3); }
+  .when.good { border-color: var(--green-dark); }
+  .when.bad { border-color: var(--red); }
+  .when.good h3 { color: var(--green); }
+  .when.bad h3 { color: var(--red); }
+  .when ul { list-style: none; }
+  .when li { font-size: 13px; padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,0.08); line-height: 1.55; }
+  .when li::before { content: '◆ '; opacity: 0.7; }
+
+  /* Enterprise CTA */
+  section.enterprise {
+    margin-top: 80px;
+    padding: 36px 36px 40px;
+    border: 3px solid var(--brass);
+    background: linear-gradient(180deg, rgba(232,197,71,0.06), rgba(0,0,0,0.3));
+    border-radius: 0;
+  }
+  .ent-head h2 { color: var(--brass); font-size: 28px; }
+  .ent-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 22px 0; }
+  .ent-card {
+    padding: 18px;
+    border: 2px solid var(--copper-dark);
+    background: rgba(0,0,0,0.4);
+  }
+  .ent-card.featured { border-color: var(--amber); background: linear-gradient(180deg, rgba(255,164,50,0.06), rgba(0,0,0,0.4)); }
+  .ent-card h3 { color: var(--amber); font-size: 17px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .ent-card p { font-size: 13px; line-height: 1.55; margin-bottom: 8px; }
+  .ent-rate { color: var(--green); font-size: 12px; font-style: italic; font-weight: 600; margin-top: 12px; }
+  .ent-cta { margin-top: 22px; text-align: center; }
+  .ent-cta .btn { font-size: 14px; padding: 14px 24px; }
+  .ent-note { font-size: 12px; opacity: 0.65; margin-top: 12px; font-style: italic; }
+
+  /* Bottom nav */
+  .learn-nav { margin-top: 60px; padding-top: 30px; border-top: 2px solid var(--copper-dark); display: flex; gap: 14px; flex-wrap: wrap; }
+  .learn-cta {
+    padding: 14px 22px;
+    border: 2px solid var(--copper-dark);
+    background: rgba(0,0,0,0.3);
+    color: var(--amber);
+    text-decoration: none;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    font-size: 14px;
+    transition: transform 0.1s, box-shadow 0.1s, border-color 0.1s;
+  }
+  .learn-cta:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0 #000; border-color: var(--amber); color: var(--amber); }
+  .learn-cta.secondary { color: var(--copper); }
+
+  @media (max-width: 800px) {
+    .wall-grid, .when-grid, .ent-grid { grid-template-columns: 1fr; }
+    .learn h1 { font-size: 30px; }
+  }
+</style>

@@ -1,0 +1,49 @@
+---
+import Base from "../../layouts/Base.astro";
+import BottleCard from "../../components/BottleCard.astro";
+import cellar from "../../data/cellar.json";
+---
+<Base
+  title="The Cellar — Public Spirits · The Distillery"
+  description="Browse community-distilled Spirits. Every one ships with full Tasting Notes."
+>
+  <section class="wrap" style="padding: 50px 0;">
+    <h1 class="pixel-h" style="font-size: 36px; color: var(--brass); margin-bottom: 8px;">🍾 The Cellar</h1>
+    <p style="opacity: 0.75; max-width: 600px; margin-bottom: 32px;">
+      Public Spirits, sorted by proof. Click any bottle for full Tasting Notes,
+      the Recipe that produced it, and download links.
+    </p>
+
+    <div class="cellar-grid">
+      {cellar.map((s) => (
+        <BottleCard
+          slug={s.slug}
+          name={s.name}
+          tagline={s.tagline}
+          proof={s.proof}
+          proofMetric={s.proof_metric}
+          paramsM={s.params_m}
+          color={s.color}
+          author={s.author}
+        />
+      ))}
+    </div>
+
+    <div style="margin-top: 40px; padding: 20px; border: 2px dashed var(--copper-dark); text-align: center; opacity: 0.8;">
+      <p style="font-size: 14px;">
+        Distilled your own Spirit? Open a PR against <a href="https://github.com/the-distillery/distillarium">the repo</a> and we'll add it.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .cellar-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .cellar-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>

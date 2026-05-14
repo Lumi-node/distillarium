@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.ruff_cache/
+
+# Distillery-specific
+spirits/
+mash/
+*.pt
+*.onnx
+*.gguf
+.opus_build.log

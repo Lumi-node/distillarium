@@ -1,0 +1,8 @@
+# Cloudflare Pages redirects rules
+# Format: <source> <destination> <status>
+
+# Friendly slugs
+/spirits/*      /cellar/:splat   301
+
+# Future: redirect old paths if we restructure
+# (none yet)

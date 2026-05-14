@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.ruff_cache/
+
+# Node / Astro
+node_modules/
+.astro/
+
+# Distillery-specific local artifacts
+spirits/
+mash/
+*.pt
+*.onnx
+*.gguf
+.opus_build.log
+data/distilled_*.jsonl
+
+# Secrets — NEVER commit
+.env
+.env.local
+.env.*.local
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.log

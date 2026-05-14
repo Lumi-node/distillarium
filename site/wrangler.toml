@@ -1,0 +1,14 @@
+# Cloudflare Pages config — Pages reads only specific fields from wrangler.toml.
+# account_id + zone_id live in env vars or DEPLOY.md, NOT here.
+#
+# Deploy: wrangler pages deploy dist --project-name=distillarium
+# (requires CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID in env)
+
+name = "distillarium"
+compatibility_date = "2026-05-13"
+pages_build_output_dir = "./dist"
+
+[vars]
+SITE_NAME = "distillarium.app"
+PRIMARY_DOMAIN = "distillarium.app"
+ALIAS_DOMAIN = "thedistillery.run"

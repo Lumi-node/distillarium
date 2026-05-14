@@ -1,0 +1,261 @@
+---
+import Base from "../layouts/Base.astro";
+---
+<Base
+  title="How distillation works · The Distillery"
+  description="The engineering — teacher-student setup, synthetic data generation, the attention-only student architecture, label-leakage gotchas, and how Tasting Notes are computed."
+>
+  <article class="wrap learn">
+    <header class="learn-head">
+      <p class="kicker">⚙ The Engineering</p>
+      <h1 class="pixel-h">How it works</h1>
+      <p class="lede">Distillation isn't magic — it's <strong>synthetic data + a small network + a careful eval loop</strong>. This page walks through every stage of what happens when you run <code>distillery distill</code>.</p>
+    </header>
+
+    <!-- THE FIVE STAGES OVERVIEW -->
+    <section>
+      <h2>The five stages, end-to-end</h2>
+      <pre class="diagram">
+   ┌─────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+   │ Recipe  │ ─→ │ Teacher  │ ─→ │ Tokenize │ ─→ │  Still   │ ─→ │ Tasting  │ ─→ Spirit
+   │ (YAML)  │    │  → Mash  │    │  + Split │    │ (8 ep.)  │    │  Notes   │   (.pt)
+   └─────────┘    └──────────┘    └──────────┘    └──────────┘    └──────────┘
+       ↑              ↑                ↑               ↑                ↑
+   you write     Gemini Flash      WordPiece       PyTorch         held-out
+   it once        ~$0.30/1k        4k vocab        5090            100 ex.
+       │              │                │               │                │
+       └──── 30 sec ──┴── 20-30 min ───┴── 1 min ──────┴── 3 min ──────┘
+                     wall-clock for the reference Needle Spirit</pre>
+    </section>
+
+    <!-- STAGE 1: RECIPE -->
+    <section>
+      <h2>Stage 1 · The Recipe</h2>
+      <p>Every distillation run is fully defined by a single YAML file. No hidden state, no flags, no environment quirks.</p>
+<pre class="code"><span class="key">name</span>: needle.tool-calling
+<span class="key">version</span>: 1
+
+<span class="key">teacher</span>:                    <span class="com"># what generates the training data</span>
+  <span class="key">provider</span>: gemini
+  <span class="key">model</span>: gemini-2.5-flash
+  <span class="key">temperature</span>: 0.9        <span class="com"># high → diversity</span>
+
+<span class="key">mash</span>:                       <span class="com"># the synthetic corpus</span>
+  <span class="key">total_examples</span>: 1000
+  <span class="key">examples_per_call</span>: 10
+  <span class="key">tools_per_call</span>: &#123; <span class="key">min</span>: 3, <span class="key">max</span>: 6 &#125;
+
+<span class="key">student</span>:                    <span class="com"># the model being trained</span>
+  <span class="key">arch</span>: attention-only-glu
+  <span class="key">d_model</span>: 384
+  <span class="key">n_heads</span>: 6
+  <span class="key">n_layers</span>: 8
+  <span class="key">max_seq_len</span>: 256
+
+<span class="key">cuts</span>: &#123; <span class="key">train</span>: 0.9, <span class="key">eval</span>: 0.1 &#125;
+
+<span class="key">still</span>:                      <span class="com"># the training loop</span>
+  <span class="key">epochs</span>: 8
+  <span class="key">batch_size</span>: 16
+  <span class="key">lr</span>: 3.0e-4
+
+<span class="key">tasting</span>:                    <span class="com"># held-out evaluation</span>
+  <span class="key">metrics</span>: [tool_name_accuracy, arg_key_f1, exact_call_accuracy]
+  <span class="key">held_out</span>: 100</pre>
+      <p>The Recipe is the contract. Two people with the same Recipe + the same teacher API key get statistically equivalent Spirits. That's the reproducibility property.</p>
+    </section>
+
+    <!-- STAGE 2: TEACHER -> MASH -->
+    <section>
+      <h2>Stage 2 · The Mash — synthetic data from the teacher</h2>
+      <p>This is the most important and most misunderstood step. We ask the teacher to <strong>generate</strong> examples of (input, output) pairs for our task.</p>
+      <p>For tool calling, each batch looks like:</p>
+<pre class="code"><span class="com"># Prompt sent to Gemini Flash</span>
+You are a data generator for training a small function-calling model.
+Available tools: <span class="str">[send_message, set_timer, get_weather, ...]</span>
+
+Produce 10 training examples as JSON. Each:
+  &#123; <span class="str">"utterance"</span>: &lt;user query&gt;,
+    <span class="str">"target_call"</span>: [&#123;<span class="str">"name"</span>: ..., <span class="str">"args"</span>: ...&#125;] &#125;
+
+Diverse phrasing. Vary contact names, times, etc.</pre>
+
+      <p>The teacher returns realistic queries paired with the correct tool calls:</p>
+<pre class="code">&#123; <span class="key">utterance</span>: <span class="str">"Hey can you log my weight? I'm at 75kg now."</span>,
+  <span class="key">tools</span>: [&#123;name: log_health_metric, params: ...&#125;, &#123;name: send_message, params: ...&#125;, ...],
+  <span class="key">target_call</span>: [&#123;name: log_health_metric, args: &#123;metric: weight, value: 75&#125;&#125;] &#125;</pre>
+
+      <p>For 1000 examples we make ~100 batched calls (~10 examples each) at temperature 0.9 for diversity. <strong>Cost: about $0.30 in Gemini Flash. Time: 20-30 minutes.</strong></p>
+
+      <p class="note">⚠ <strong>The non-obvious detail.</strong> Each training row needs the <em>available tools</em> AS DISTINCT FROM the <em>target call</em>. If the student is shown only the target tool, it learns to predict the tool name from the input — but never learns to choose between alternatives. That's a label leak. We caught and fixed exactly this bug while building the reference Needle Spirit.</p>
+    </section>
+
+    <!-- STAGE 3: TOKENIZE + SPLIT -->
+    <section>
+      <h2>Stage 3 · Tokenize and cut</h2>
+      <p>We train a tiny WordPiece tokenizer (4096 vocab) on the full corpus — utterances, tool definitions, target calls. This keeps the student's embedding table small (4096 × 384 = ~1.5M params just for embeddings).</p>
+      <p>The data is then split into <strong>cuts</strong>:</p>
+      <ul class="bullets">
+        <li><strong>Hearts (90%)</strong> — the train set. The model sees these during training.</li>
+        <li><strong>Heads (10%)</strong> — the held-out eval set. Never seen during training. Used to compute Tasting Notes.</li>
+        <li><strong>Tails</strong> — in the future, borderline / hard examples we flag for human review.</li>
+      </ul>
+    </section>
+
+    <!-- STAGE 4: THE STILL -->
+    <section>
+      <h2>Stage 4 · The Still — the actual training</h2>
+      <p>The student is an <strong>attention-only transformer</strong>. We replaced the standard feedforward block (FFN) with a Gated Linear Unit (GLU). This shaves parameters and matches our empirical finding that attention does most of the heavy lifting on structured tasks like tool calling.</p>
+
+      <h3 style="margin-top: 24px;">Student architecture (one block)</h3>
+<pre class="diagram">
+     input tokens                      schema tokens
+         ↓                                  ↓
+  ┌─────────────┐                    ┌──────────────┐
+  │ Embeddings  │                    │ Embeddings   │
+  │ + RoPE      │                    │              │
+  └──────┬──────┘                    └──────┬───────┘
+         ↓                                  │
+  ┌─────────────┐                           │
+  │ Self-Attn   │ ← LayerNorm + Residual    │
+  └──────┬──────┘                           │
+         ↓                                  ↓
+  ┌─────────────────────────────────────────┐
+  │ Cross-Attn (input ← schema)             │
+  │ — this is where the model "looks up"    │
+  │   which tool to call from the catalog   │
+  └────────────────────┬────────────────────┘
+                       ↓
+              ┌────────────────┐
+              │ GLU block      │   ←  replaces FFN
+              │ down(GELU(up)*gate) │  more params/FLOPs efficient
+              └────────┬───────┘
+                       ↓
+                    output</pre>
+
+      <p>Total: 8 layers × this block + token embeddings + final projection = <strong>20.7M parameters</strong>.</p>
+
+      <h3 style="margin-top: 24px;">The training loop</h3>
+<pre class="code"><span class="com"># pseudocode of one training step</span>
+for batch in dataloader:
+    input_ids = tokenize(<span class="str">"[QUERY] "</span> + utterance + <span class="str">" [/QUERY] [CALL] "</span> + target_json + <span class="str">" [/CALL]"</span>)
+    schema_ids = tokenize(serialize(available_tools))   <span class="com"># the tool catalog, NOT the target!</span>
+
+    logits = model(input_ids, schema_ids)
+    loss = cross_entropy(logits[:-1], input_ids[1:])    <span class="com"># next-token prediction</span>
+    loss.backward()
+    optimizer.step()</pre>
+
+      <p>8 epochs at batch 16, lr 3e-4 with AdamW. On a single RTX 5090 this run takes <strong>~3 minutes</strong>. Loss curve drops from 4.65 to 0.73.</p>
+    </section>
+
+    <!-- STAGE 5: TASTING NOTES -->
+    <section>
+      <h2>Stage 5 · Tasting Notes</h2>
+      <p>After training, we run inference on the 100 held-out cuts and compute three metrics:</p>
+
+      <table class="metric-table">
+        <thead><tr><th>Metric</th><th>What it measures</th><th>Needle (this Spirit)</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Tool-name accuracy</strong></td>
+            <td>Did the model pick the right tool out of the catalog?</td>
+            <td>78% &nbsp;<span class="hint">(random baseline ~25%)</span></td>
+          </tr>
+          <tr>
+            <td><strong>Arg-key F1</strong></td>
+            <td>Of the argument names it produced, how many matched gold?</td>
+            <td>0.73 &nbsp;<span class="hint">(p=0.85, r=0.64)</span></td>
+          </tr>
+          <tr>
+            <td><strong>Exact-call accuracy</strong></td>
+            <td>Did it match the FULL gold call — tool + every arg key + every arg value?</td>
+            <td>3% &nbsp;<span class="hint">(value-level prediction is the weak spot)</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>Plus a <strong>samples table</strong> — the first 8 held-out predictions with their gold values, so you can eyeball where it succeeds and fails. <em>Every Spirit ships with its failure cases.</em></p>
+    </section>
+
+    <!-- BOTTLING -->
+    <section>
+      <h2>Stage 6 (optional) · Bottling for deployment</h2>
+      <p>The trained Spirit is just a PyTorch <code>.pt</code> file (model weights + tokenizer + Recipe). For production deployment we re-pack it:</p>
+
+      <table class="metric-table">
+        <thead><tr><th>Format</th><th>Size</th><th>Runs on</th><th>Use when</th></tr></thead>
+        <tbody>
+          <tr><td><strong>PyTorch</strong> .pt</td><td>249 MB</td><td>Python anywhere</td><td>Default; training continuation</td></tr>
+          <tr><td><strong>ONNX</strong></td><td>~100 MB</td><td>Most runtimes: CPU/GPU/edge</td><td>Cross-language inference (Rust, JS, Go, Java)</td></tr>
+          <tr><td><strong>GGUF</strong> q4</td><td>~25 MB</td><td>llama.cpp, mobile, embedded</td><td>Resource-constrained deployment</td></tr>
+          <tr><td><strong>WASM</strong></td><td>~50 MB</td><td>The browser</td><td>Run entirely client-side, no backend</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- WHAT'S NOT SOLVED -->
+    <section>
+      <h2>What's NOT solved yet (the honest part)</h2>
+      <ul class="bullets">
+        <li><strong>Argument-value accuracy.</strong> 3% exact-call is rough — the WordPiece tokenizer splits JSON values awkwardly. Byte-level BPE is the v0.2 fix.</li>
+        <li><strong>Only one teacher backend.</strong> Gemini Flash is wired. Claude and OpenAI providers are stubs.</li>
+        <li><strong>Single-shot recipes.</strong> No iterative refinement yet — you can't say "regenerate just the failed examples and retrain on the union."</li>
+        <li><strong>No quantization-aware training.</strong> We bottle to q4 GGUF post-hoc, which loses accuracy. v0.4 will train aware.</li>
+        <li><strong>Tasting Notes are statistical.</strong> They don't catch semantic failures (predicting "Twitter" instead of "Instagram"). LLM-as-judge eval is on the roadmap.</li>
+      </ul>
+    </section>
+
+    <nav class="learn-nav">
+      <a href="/why" class="learn-cta secondary">← Why distill?</a>
+      <a href="/use-cases" class="learn-cta">Next: concrete use cases →</a>
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .learn { max-width: 880px; padding: 50px 0 70px; }
+  .learn-head { margin-bottom: 40px; }
+  .kicker { color: var(--copper); text-transform: uppercase; letter-spacing: 0.18em; font-size: 12px; margin-bottom: 8px; }
+  .learn h1 { font-size: 48px; color: var(--brass); line-height: 1.05; margin-bottom: 12px; }
+  .learn .lede { font-size: 17px; line-height: 1.55; opacity: 0.9; max-width: 700px; }
+  .learn section { margin-top: 56px; }
+  .learn h2 { font-size: 26px; color: var(--amber); margin-bottom: 16px; }
+  .learn h3 { font-size: 15px; color: var(--brass); margin-bottom: 8px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .learn p { font-size: 15px; line-height: 1.65; margin-bottom: 14px; opacity: 0.92; }
+  .learn p.note { opacity: 0.85; padding: 14px 18px; border-left: 3px solid var(--amber); background: rgba(0,0,0,0.3); font-size: 14px; }
+  .learn ul.bullets { list-style: none; margin: 12px 0; }
+  .learn ul.bullets li { font-size: 14px; padding: 6px 0; line-height: 1.55; }
+  .learn ul.bullets li::before { content: '◆ '; color: var(--copper); margin-right: 4px; }
+
+  .diagram, .code { background: #0a0604; border: 2px solid var(--copper-dark); padding: 16px; font-size: 12px; line-height: 1.55; color: var(--paper); white-space: pre; overflow-x: auto; margin: 12px 0; }
+  .code .key { color: var(--brass); }
+  .code .str { color: var(--green); }
+  .code .num { color: var(--amber); }
+  .code .com { color: rgba(255,255,255,0.4); font-style: italic; }
+
+  .metric-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 14px; }
+  .metric-table th, .metric-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(101,67,33,0.4); vertical-align: top; }
+  .metric-table th { color: var(--brass); text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; background: rgba(0,0,0,0.3); }
+  .metric-table strong { color: var(--amber); }
+  .metric-table .hint { font-size: 11px; color: var(--green); opacity: 0.85; }
+
+  .learn-nav { margin-top: 60px; padding-top: 30px; border-top: 2px solid var(--copper-dark); display: flex; gap: 14px; flex-wrap: wrap; }
+  .learn-cta {
+    padding: 14px 22px;
+    border: 2px solid var(--copper-dark);
+    background: rgba(0,0,0,0.3);
+    color: var(--amber);
+    text-decoration: none;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    font-size: 14px;
+    transition: transform 0.1s, box-shadow 0.1s, border-color 0.1s;
+  }
+  .learn-cta:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0 #000; border-color: var(--amber); color: var(--amber); }
+  .learn-cta.secondary { color: var(--copper); }
+
+  @media (max-width: 800px) {
+    .learn h1 { font-size: 36px; }
+  }
+</style>
