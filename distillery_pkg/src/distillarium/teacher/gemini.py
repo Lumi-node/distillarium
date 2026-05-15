@@ -182,6 +182,35 @@ tool from context.
 """
 
 
+# ---- Inference-time prompt (used by TeacherEvalGenerator for the teacher
+# baseline in evaluate()). Different from data-generation prompts above:
+# here the teacher is the "student" — given ONE utterance and tools, pick
+# the right call. ---------------------------------------------------------
+EVAL_SYSTEM_PROMPT = """\
+You are a function-caller. Given a user utterance and the available tools,
+return the SINGLE best tool call as JSON. Output ONLY valid JSON — no prose,
+no code fences, no commentary.
+
+Schema:
+{"name": "<tool_name>", "args": {"<arg_key>": "<arg_value>", ...}}
+
+Rules:
+1. Use only tool names from the provided set.
+2. Use only argument keys defined in that tool's params.
+3. Required args must be present; optional args may be omitted.
+4. If no tool fits, return {"name": "", "args": {}}.
+"""
+
+EVAL_USER_PROMPT_TEMPLATE = """\
+Available tools:
+{tools_json}
+
+User utterance: {utterance}
+
+Return the JSON call only.
+"""
+
+
 class GeminiTeacher(Teacher):
     """Gemini-Flash-backed teacher. Yields realistic (utt, tools, target_call) triples."""
 
@@ -260,6 +289,51 @@ class GeminiTeacher(Teacher):
                 continue
             out.append(DistillExample(utterance=utt.strip(), tools=tools, target_call=calls))
         return out
+
+    def answer(self, utterance: str, tools: list[dict]) -> list[dict]:
+        """Inference-time call against the teacher — used for teacher-baseline eval."""
+        user_prompt = EVAL_USER_PROMPT_TEMPLATE.format(
+            tools_json=json.dumps(tools, indent=2),
+            utterance=utterance,
+        )
+        try:
+            resp = self._client.models.generate_content(
+                model=self.model,
+                contents=[EVAL_SYSTEM_PROMPT, user_prompt],
+                config={
+                    "response_mime_type": "application/json",
+                    "temperature": 0.0,  # deterministic at inference time
+                    "max_output_tokens": 512,
+                },
+            )
+            text = (resp.text or "").strip()
+        except Exception:
+            self.failures += 1
+            return []
+
+        # Strip code fences if any model variant ignored response_mime_type
+        if text.startswith("```"):
+            text = text.split("\n", 1)[1] if "\n" in text else text
+            if text.endswith("```"):
+                text = text.rsplit("```", 1)[0]
+
+        try:
+            call = json.loads(text)
+        except json.JSONDecodeError:
+            return []
+
+        # Accept either {"name", "args"} or a list of such objects (defensive)
+        if isinstance(call, list):
+            call = call[0] if call else {}
+        if not isinstance(call, dict):
+            return []
+        name = call.get("name", "")
+        args = call.get("args", {})
+        if not isinstance(name, str) or not name:
+            return []
+        if not isinstance(args, dict):
+            args = {}
+        return [{"name": name, "args": args}]
 
     def generate_batch(self, batches: int, verbose: bool = True) -> Iterator[DistillExample]:
         for b in range(batches):

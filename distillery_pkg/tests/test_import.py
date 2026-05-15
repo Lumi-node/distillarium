@@ -6,7 +6,7 @@ from pathlib import Path
 def test_top_level_imports():
     import distillarium
     from distillarium import Recipe, Spirit, distill, taste, bottle, load_spirit
-    assert distillarium.__version__ == "0.1.0"
+    assert distillarium.__version__ == "0.1.2"
 
 
 def test_engine_imports():

@@ -1,5 +1,25 @@
 name: Publish distillarium to PyPI
 
+# ---------------------------------------------------------------------------
+# Trusted Publishing (OIDC) — no PyPI tokens stored as GitHub secrets.
+#
+# One-time setup on pypi.org:
+#   1. Go to https://pypi.org/manage/project/distillarium/settings/publishing/
+#   2. Add a new pending publisher with:
+#        - PyPI Project name: distillarium
+#        - Owner:             Lumi-node
+#        - Repository name:   distillarium
+#        - Workflow filename: publish-pypi.yml
+#        - Environment name:  pypi
+#   3. (Optional) Same dance on test.pypi.org for the TestPyPI dry runs,
+#      with environment name: testpypi.
+#
+# After that, every `git tag vX.Y.Z && git push --tags` will trigger this
+# workflow, which mints a short-lived OIDC token on the GitHub side and
+# exchanges it with PyPI for upload credentials. No long-lived token leaves
+# either side. If the workflow file moves or is renamed, re-register on PyPI.
+# ---------------------------------------------------------------------------
+
 on:
   push:
     tags:
@@ -13,9 +33,9 @@ on:
         default: false
 
 jobs:
-  build-and-publish:
+  build:
+    name: Build sdist + wheel
     runs-on: ubuntu-latest
-    environment: pypi  # Configure environment 'pypi' in repo settings for required reviewers
     steps:
       - uses: actions/checkout@v4
 
@@ -28,28 +48,63 @@ jobs:
           python -m pip install --upgrade pip
           pip install build twine
 
-      - name: Build
+      - name: Build distributions
         working-directory: distillery_pkg
         run: |
           rm -rf dist build src/*.egg-info
           python -m build
 
-      - name: Verify distribution
+      - name: Verify distributions
         working-directory: distillery_pkg
         run: twine check dist/*
 
-      - name: Publish to TestPyPI
-        if: ${{ inputs.test_only == true }}
-        working-directory: distillery_pkg
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        run: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: distillery_pkg/dist/
 
-      - name: Publish to PyPI
-        if: ${{ inputs.test_only != true }}
-        working-directory: distillery_pkg
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload dist/*
+  publish-testpypi:
+    name: Publish to TestPyPI (manual only)
+    needs: build
+    if: ${{ inputs.test_only == true }}
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/distillarium
+    permissions:
+      id-token: write   # required for OIDC token exchange
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to TestPyPI via Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: build
+    if: ${{ inputs.test_only != true }}
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/distillarium
+    permissions:
+      id-token: write   # required for OIDC token exchange
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI via Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true

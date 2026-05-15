@@ -169,11 +169,58 @@ def distill(
     return spirit
 
 
-def taste(spirit: Spirit, eval_data_path: str | Path, held_out: int = 100) -> dict:
-    """Run a fresh Tasting against held-out cuts."""
+def taste(
+    spirit: Spirit,
+    eval_data_path: str | Path,
+    held_out: int = 100,
+    teacher=None,
+    teacher_held_out: int | None = None,
+    previous: dict | str | Path | None = None,
+) -> dict:
+    """Run a fresh Tasting against held-out cuts.
+
+    Args:
+        spirit: the trained Spirit (student model + tokenizer).
+        eval_data_path: JSONL of held-out (utt, tools, target_call) triples.
+        held_out: cap on examples to score.
+        teacher: optional teacher backend (string provider name or Teacher
+            instance) to compute the teacher-baseline. If string, builds a
+            Teacher from `spirit.recipe.teacher` config.
+        teacher_held_out: optional smaller cap for the teacher pass; defaults
+            to held_out. Each teacher call costs API tokens — set lower for
+            cheap regression runs.
+        previous: optional previous Tasting Notes (dict or path to a JSON
+            file). Adds a `regression` block flagging metrics that got worse.
+
+    Returns the new Tasting Notes dict and also writes it onto spirit.metrics.
+    """
     data = load_distilled(eval_data_path)
     generator = FunctionCallGenerator(model=spirit.model, tokenizer=spirit.tokenizer)
-    metrics = evaluate(generator, data, max_examples=held_out)
+
+    teacher_instance = None
+    if teacher is not None:
+        if isinstance(teacher, str):
+            tcfg = spirit.recipe.teacher
+            teacher_instance = get_teacher(
+                teacher,
+                model=tcfg.model,
+                api_key=tcfg.api_key,
+                examples_per_call=spirit.recipe.mash.examples_per_call,
+                tools_per_call_min=spirit.recipe.mash.tools_per_call.get("min", 3),
+                tools_per_call_max=spirit.recipe.mash.tools_per_call.get("max", 6),
+                seed=spirit.recipe.mash.seed,
+            )
+        else:
+            teacher_instance = teacher
+
+    metrics = evaluate(
+        generator,
+        data,
+        max_examples=held_out,
+        teacher=teacher_instance,
+        teacher_max_examples=teacher_held_out,
+        previous=previous,
+    )
     spirit.metrics = metrics
     return metrics
 

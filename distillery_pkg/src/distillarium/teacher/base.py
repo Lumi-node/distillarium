@@ -33,6 +33,20 @@ class Teacher(ABC):
         """Yield DistillExample objects, one per valid teacher output."""
         raise NotImplementedError
 
+    def answer(self, utterance: str, tools: list[dict]) -> list[dict]:
+        """Inference-time call: given one utterance + tool set, pick the call.
+
+        Used by `TeacherEvalGenerator` to compute the teacher baseline during
+        Tasting. Returns `[{"name": ..., "args": ...}]` (a list to match the
+        student generator's shape), or `[]` if no valid tool fits.
+
+        The default implementation raises — subclasses opt in by overriding.
+        """
+        raise NotImplementedError(
+            f"{type(self).__name__} does not implement inference-time answer(). "
+            "Override answer() on this teacher to enable teacher-baseline eval."
+        )
+
     def distill_to_file(
         self,
         out_path: str | Path,

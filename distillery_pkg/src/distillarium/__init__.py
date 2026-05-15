@@ -13,7 +13,7 @@ from distillarium.recipe import Recipe
 from distillarium.spirit import Spirit, load_spirit
 from distillarium.pipeline import distill, taste, bottle
 
-__version__ = "0.1.0"
+__version__ = "0.1.2"
 
 __all__ = [
     "Recipe",

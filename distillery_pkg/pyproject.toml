@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "distillarium"
-version = "0.1.0"
+version = "0.1.2"
 description = "Distill any task into a pocket-sized Spirit. Pure model. No API."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -42,9 +42,10 @@ dev = ["pytest>=7.0", "pytest-cov>=4.0", "ruff>=0.1"]
 distillery = "distillarium.cli:main"
 
 [project.urls]
-Homepage = "https://thedistillery.run"
-Documentation = "https://thedistillery.run/docs"
+Homepage = "https://distillarium.app"
+Documentation = "https://distillarium.app/docs"
 Repository = "https://github.com/Lumi-node/distillarium"
+Issues = "https://github.com/Lumi-node/distillarium/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
